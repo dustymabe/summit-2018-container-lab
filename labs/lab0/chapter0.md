@@ -1,127 +1,82 @@
 ## Introduction
 
-In order to make this lab simple to work with, we are going to leverage
-a product known as the Container Development Kit (CDK). The CDK leverages a tool called [minishift](https://github.com/minishift/minishift) to setup a RHEL VM with docker and OpenShift already installed. You should register your minishift instance in order to access Red Hat content and be able to build in OpenShift and docker correctly. The CDK also includes documentation, getting started and howto guides, and a community of users to learn from.
+In this lab, we are going to leverage a process known as [`oc cluster up`](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md). This enables us to quickly stand up a local OpenShift Container Platform to start our evaluation. The key result of `oc cluster up` is a reliable, reproducible OpenShift environment to iterate on.
 
-The key feature of minishift is a reliable, reproducible environment to iterate on. If you are unfamiliar with minishift that is OK, as we will cover the basics here. 
+Expected completion: 5-10 minutes
 
-Unfortunately, we are just briefly discussing the CDK here. You should definitely 
-[dig in more](http://developers.redhat.com/products/cdk/) as you have time.
-The CDK is a free download for registered users, and gives you access to
-many tools in the Red Hat Container Ecosystem.
+## Find your AWS Instance
+This lab is designed for to accomodate many students. Each student will be given a VM running on AWS. The naming convention for the lab is:
 
-## Getting the CDK
+**student-\<number\>**.labs.sysdeseng.com
 
-**NOTE** If you are attending a lab in person, you can skip this step
-         and move directly to [Get Lab Materials](#get-lab-materials) as 
-         the steps have already been performed on the machine you are using.
+You will be assigned a number by the instructor.
 
-In order to get the CDK, the easiest way is to head over to developers.redhat.com and follow the "[install the Container Development Kit](http://developers.redhat.com/products/cdk/get-started/)" instructions. The instructions cover installing the CDK on Windows, MacOS, and Linux. 
+Retrieve the key from the [instructor host](https://instructor.labs.sysdeseng.com/rhte.pem) so that you can _SSH_ into the instances by accessing the password protected directory from the table above. Download the _rhte.pem_ file to your local machine and change the permissions of the file to 600.
 
-**NOTE** At the time of this writing, the CDK version we are using is CDK-3.0 
-        which is still in beta so there are no installation docs as yet. 
-        However, they should end up at the end of the URL above 
+## Connecting to your AWS Instance
+This lab should be performed on **YOUR ASSIGNED AWS INSTANCE** as `ec2-user` unless otherwise instructed.
 
-## Get Lab Materials
+**_NOTE_**: Please be respectful and only connect to your assigned instance. Every instance for this lab uses the same public key so you could accidentally (or with malicious intent) connect to the wrong system. If you have any issues please inform an instructor.
+```bash
+$ ssh -i rhte.pem ec2-user@student-<number>.labs.sysdeseng.com
+```
 
-For the convience of users of the lab, we created a script and installed it on the Lab VM. If you are in the lab, please run the following:
+**NOTE**: For Windows users you will have to use a terminal like [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) to SSH using the private key. 
 
+Once installed, use the following instructions to SSH to the Tower instance link: [http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html).
+
+TIP: Use the rhte.ppk key located at:  [instructor host](https://instructor.labs.sysdeseng.com/rhte.ppk)
+
+## Getting Set Up
+For the sake of time, some of the required setup has already been taken care of on your AWS VM. For future reference though, the easiest way to get started is to head over to the OpenShift Origin repo on github and follow the "[cluster up and down instructions](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md)" instructions. The instructions cover getting started on Windows, MacOS, and Linux.
+
+Since some of these labs will have long running processes, it is recommended to use something like `tmux` or `screen` in case you lose your connection at some point so you can reconnect:
+```bash
+$ sudo yum -y install screen
+$ screen
+```
+
+In case you get disconnected use `screen -x` to reattach once you reestablish ssh connectivity.
+
+All that's left to do is run OpenShift by executing the `start-oc.sh` script in your home directory. First, let's take a look at what this script is doing, it's grabbing AWS instance metadata so that it can conifigure OpenShift to start up properly on AWS:
+```bash
+$ cat ~/start-oc.sh
+```
+Now, let's start our local, containerized OpenShift environment:
+```bash
+$ ~/start-oc.sh
+```
+
+The resulting output should be something of this nature
+```bash
+   The server is accessible via web console at:
+       https://<public-hostname>:8443
+
+   You are logged in as:
+       User:     developer
+       Password: <any value>
+```
+You should get a lot of feedback about the launch of OpenShift. As long as you don't get any errors you are in good shape.
+
+OK, so now that OpenShift is available, let's ask for a cluster status & take a look at our running containers:
+```bash
+$ oc version
+$ oc cluster status
+$ docker ps
+$ docker images
+```
+We can also check out the OpenShift console. Open a browser and navigate to `https://<public-hostname>:8443`. Once it loads (and you bypass the certificate error), you can log in to the console using the default developer username (use any password).
+
+## Lab Materials
+
+Clone the lab repository from github:
 ```bash
 $ cd ~/
-$ /usr/local/bin/getlab 
-Cloning into 'summit-2017-container-lab'...
-remote: Counting objects: 727, done.
-remote: Compressing objects: 100% (80/80), done.
-remote: Total 727 (delta 21), reused 0 (delta 0), pack-reused 645
-Receiving objects: 100% (727/727), 13.75 MiB | 2.08 MiB/s, done.
-Resolving deltas: 100% (320/320), done.    
+$ git clone https://github.com/tchughesiv/rh-container-lab
 ```
 
-For those of you following along at home, just `git clone` the repo you 
-found this file in:
+## OpenShift Container Platform
 
-```bash
-$ cd ~/
-$ git clone https://github.com/dustymabe/summit-2017-container-lab
-```
+What is OpenShift? OpenShift, which you may remember as a "PaaS" to build applications on, has evolved into a complete container platform based on Kubernetes. If you remember the "DIY Cartridges" from older versions of Openshift, essentially, OpenShift v3 has expanded the functionality to provide complete containers. With OpenShift, you can build from a platform, build from scratch, whatever you can do in a container, and still get the complete lifecycle automation you loved in the older versions.
 
-## Minishift Walkthrough
-
-Your major units of operation with minishift are `minishift start`, `minishift ssh`, 
-`minishift docker-env`, and `minishift stop`. We will walk through these. 
-Minishift has a number of other functions, some of which we will use later in the lab. However, these are the basics which warrant some examples to make sure you have enough context for the rest of the labs. We also need to get you access to the docker daemon running inside the minishift VM for the "Docker Refresh" in Lab 1.  
-
-Before we begin, you need to configure the CDK for proper operation using `minishift setup-cdk`. You have a number of options here like choosing your hypervisor, config file location, etc. Covering these in detail is beyond the scope of this lab and is well documented with `minishift setup-cdk --help` or in the documentation linked above. For 
-the in-person lab we have already performed this step for you.
-
-Now to really start, `minishift start`: this command asks your hypervisor to launch the virtual machine minishift has prepared. The operation may be a "create and launch VM" or a "re-launch an existing VM" and it is largely transparent to the user. 
- 
-OK, so, let's move in to our project directory and then launch minishift:
-
-```bash
-$ cd ~/summit-2017-container-lab
-$ minishift start --skip-registration
-```
-
-**NOTE** If you following this lab at home, you should run just `minishift start`
-        and register with Red Hat. Otherwise, you may not have access to all the 
-        content used later in the lab(s). We can bypass it in the physical lab because 
-        we have the content replicated in the lab room.
-
-You should get a lot of feedback about the launch of the VM but, if you are 
-using the lab VM or have run this before, you will get a lot less. As long 
-as you don't get any errors you are in good shape.
-
-OK, so now minishift is running which means docker and OpenShift are available. We can now ask for the status (it's succinct!):
-
-```bash
-$ minishift status
-Running
-```
-
-Now we can actually step inside the machine with:
-
-```bash
-$ minishift ssh
-Last login: Mon Feb 30 17:49:01 2017 from 192.168.??.??
-[docker@minishift ~]$ 
-```
-
-You should very rarely need to jump inside the VM as most of the functions of docker and OpenShift can be done remotely. However, it can be really nice to know that you don't need to figure out the IP address or the username and password in case you have to get in there when something goes wrong. That said, most of the time the right answer is to just destroy the instance and recreate it.
-
-Now exit out of the minishift VM by disconnecting from the SSH session:
-
-```bash
-$ exit
-```
-
-We have two more commands worth mentioning. First off, let's mention `minishift stop`. Stop does exactly what it sounds like and shuts down minishift. However, it does not destroy anything inside just "turns the machine off." If you do want to remove the VM, you can use `minishift delete`. You can spin it right back up again, fresh, with `minishift start`. Finally, we will use `minishift docker-env` in a few minutes to connect the host to the docker daemon in the VM.
-
-## Container Development Kit (CDK) Walkthrough
-
-When we started minishift, we launched the software tooling component of the CDK. As we said before, the CDK provides a lot of support for containerizing your applications. However, the major software tool is minishift.
-
-However, what is minishift? Essentially, it is a simple to use and launch instance of the 
-same OpenShift you would use at work. OpenShift, which you may remember as a PAAS providing "platforms" to build applications on, has evolved to be a complete container management solution. If you remember the "DIY Cartridges" from older versions of Openshift, essentially, OpenShift v3 has expanded the functionality to provide complete containers. Now, with OpenShift, you can build from a platform, build from scratch, whatever you can do in a container, and still get the complete lifecycle automation you loved in the older versions.
-
-If you would like to explore the OpenShift Console, you can see it running 
-in your OpenShift instance, if you open a browser. However, before we do that, we need the IP address of the VM minishift created. Easy enough, just run
-
-```bash
-$ minishift ip
-192.168.???.??? 
-```
-Ok, now we can check out the OpenShift console. Open Firefox from the Applications menu and navigate to `https://<ip>:8443/console/`(replace "<ip>" with the address from the last command). Once it loads (and you bypass the bad certificate error), you can log in to the console using the default `developer/developer` username/password.
-
-## Setting Up For the Remaining Labs
-
-Let's wrap up the walkthroughs by and set up for the next lab sections we'll go ahead and bring up another VM. In this case, we are launching an instance of Red Hat Enterprise Linux Atomic Host that will set up and run OpenShift during launch.
-This box will be known as **atomic-host.example.com** for the purposes of
-this lab and will have the IP address `192.168.124.100` but you should always be able to reference it by DNS name.
-
-```bash
-$ virsh start atomic-host
-```
-
-After you bring up this new machine you are then ready to move on to the
-[next lab](../lab1/chapter1.md).
+You are now ready to move on to the [next lab](../lab1/chapter1.md).
