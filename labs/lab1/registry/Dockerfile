@@ -1,9 +1,9 @@
 FROM registry.access.redhat.com/rhel7
-MAINTAINER Student <student@foo.io>
+MAINTAINER Student <student@example.com>
 
-ADD ./custom.repo /etc/yum.repos.d/custom.repo
-
-RUN yum -y install docker-registry --enablerepo=rhel-7-server-extras-rpms && yum clean all
+RUN yum -y install docker-registry --disablerepo "*" \
+      --enablerepo rhel-7-server-extras-rpms && \
+    yum clean all
 
 EXPOSE 5000
 
