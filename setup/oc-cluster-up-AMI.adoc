@@ -121,11 +121,11 @@ sudo sysctl -w net.ipv4.ip_forward=1
 
 Clone the lab repo: 
 ```
-git clone https://github.com/tchughesiv/rh-container-lab
-chmod +x /home/ec2-user/rh-container-lab/scripts/host/start-oc.sh
-chmod +x /home/ec2-user/rh-container-lab/scripts/host/cleanup-oc.sh
-mv /home/ec2-user/rh-container-lab/scripts/host/start-oc.sh ~
-mv /home/ec2-user/rh-container-lab/scripts/host/cleanup-oc.sh ~
+git clone https://github.com/dustymabe/summit-2018-container-lab
+chmod +x /home/ec2-user/summit-2018-container-lab/scripts/host/start-oc.sh
+chmod +x /home/ec2-user/summit-2018-container-lab/scripts/host/cleanup-oc.sh
+mv /home/ec2-user/summit-2018-container-lab/scripts/host/start-oc.sh ~
+mv /home/ec2-user/summit-2018-container-lab/scripts/host/cleanup-oc.sh ~
 ```
 
 Start the cluster to cache the iamges.
@@ -138,7 +138,7 @@ Now log into the console with the URL given as "oc cluster up" output.  Once you
 
 ```
 ~/cleanup-oc.sh
-rm -rf /home/ec2-user/rh-container-lab
+rm -rf /home/ec2-user/summit-2018-container-lab
 ```
 
 ### Create AMI

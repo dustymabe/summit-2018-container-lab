@@ -72,7 +72,7 @@ We can also check out the OpenShift console. Open a browser and navigate to `htt
 Clone the lab repository from github:
 ```bash
 $ cd ~/
-$ git clone https://github.com/tchughesiv/rh-container-lab
+$ git clone https://github.com/dustymabe/summit-2018-container-lab
 ```
 
 ## OpenShift Container Platform
