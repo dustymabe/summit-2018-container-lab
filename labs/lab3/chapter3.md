@@ -256,7 +256,6 @@ When we have a working `docker run` recipe we want a way to communicate that to 
 
         $ docker stop wordpress
         $ docker rm wordpress
-        $ sudo yum -y install atomic
         $ atomic run wordpress
         $ curl -L http://localhost:8080
 
