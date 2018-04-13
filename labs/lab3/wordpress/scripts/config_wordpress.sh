@@ -38,7 +38,7 @@ __handle_db_host() {
             /var/www/html/wp-config.php
     else
         # Update wp-config.php to point to our linked container's address.
-        sed -i -e "s/^\(define('DB_HOST', '\).*\(');.*\)/\1${DB_PORT#tcp://}\2/" \
+        sed -i -e "s/^\(define('DB_HOST', '\).*\(');.*\)/\1$DB_HOST:${DB_PORT#tcp://}\2/" \
             /var/www/html/wp-config.php
     fi
 }
