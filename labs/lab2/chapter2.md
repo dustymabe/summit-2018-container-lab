@@ -11,8 +11,8 @@ Expected completion: 20-25 minutes
 Agenda:
 
 * Overview of monolithic application
-* Build docker image
-* Run container based on docker image
+* Build podman image
+* Run container based on podman image
 * Exploring the running container
 * Connecting to the application
 * Review Dockerfile practices
@@ -26,7 +26,7 @@ Our monolithic application we are going to use in this lab is a simple wordpress
 
 To perform some generic configuration of mariadb and wordpress there are startup configuration scripts that are executed each time a container is started from the image. These scripts configure the services and then start them in the running container.
 
-## Building the docker Image
+## Building the podman Image
 
 View the `Dockerfile` provided for `bigapp` which is not written with best practices in mind:
 ```bash
@@ -34,38 +34,36 @@ $ cd ~/summit-2018-container-lab/labs/lab2/bigapp/
 $ cat Dockerfile
 ```
 
-Build the docker image for this by executing the following command:
+Build the podman image for this by executing the following command. This can take a while to build. While you wait you may want to peek at the [Review Dockerfile Practices](#review-dockerfile-practices) section at the end of this lab chapter.
 ```bash
-$ docker build -t bigimg .
+$ sudo podman build -t bigimg .
 ```
 
-This can take a while to build. While you wait you may want to peek at the [Review Dockerfile Practices](#review-dockerfile-practices) section at the end of this lab chapter.
+## Run Container Based on podman Image
 
-## Run Container Based on docker Image
-
-To run the docker container based on the image we just built use the following command:
+To run the podman container based on the image we just built use the following command:
 ```bash
-$ docker run -p 80 --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
-$ docker ps
+$ sudo podman run -p 80 --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
+$ sudo podman ps
 ```
 
-Take a look at some of the arguments we are passing to docker.  We are telling docker that the image will be listening on port 80 inside the container and to randomly assign a port on the host that maps to port 80 in the container. Next we are providing a ```name``` of ```bigapp```. After that we are setting some environment variables that will be passed into the container and consumed by the configuration scripts to set up the container. Finally, we pass it the name of the image that we built in the prior step.
+Take a look at some of the arguments we are passing to docker.  We are telling podman that the image will be listening on port 80 inside the container and to randomly assign a port on the host that maps to port 80 in the container. Next we are providing a ```name``` of ```bigapp```. After that we are setting some environment variables that will be passed into the container and consumed by the configuration scripts to set up the container. Finally, we pass it the name of the image that we built in the prior step.
 
 ## Exploring the Running Container
 
-Now that the container is running we will explore the container to see what's going on inside. First off, the processes were started and any output that goes to stdout will come to the console of the container. You can run `docker logs` to see the output. To follow 
+Now that the container is running we will explore the container to see what's going on inside. First off, the processes were started and any output that goes to stdout will come to the console of the container. You can run `podman logs` to see the output. To follow 
 or "tail" the logs use the `-f` option.
 
 **__NOTE:__** You are able to use the **name** of the container rather than the container id for most `docker` commands.
 ```bash
-$ docker logs -f bigapp 
+$ sudo podman logs -f bigapp
 ```
 
 **__NOTE:__** When you are finished inspecting the log, just CTRL-C out.
 
-If you need to inspect more than just the stderr/stdout of the machine then you can enter into the namespace of the container to inspect things more closely. The easiest way to do this is to use `docker exec`. Try it out:
+If you need to inspect more than just the stderr/stdout of the machine then you can enter into the namespace of the container to inspect things more closely. The easiest way to do this is to use `podman exec`. Try it out:
 ```bash
-$ docker exec -it bigapp /bin/bash
+$ sudo podman exec -t bigapp /bin/bash
 [CONTAINER_NAMESPACE]# pstree
 [CONTAINER_NAMESPACE]# cat /var/www/html/wp-config.php | grep '=='
 [CONTAINER_NAMESPACE]# tail /var/log/httpd/access_log /var/log/httpd/error_log /var/log/mariadb/mariadb.log
@@ -83,7 +81,7 @@ Press `CTRL+d` or type `exit` to leave the container shell.
 
 First detect the host port number that is is mapped to the container's port 80:
 ```bash
-$ docker port bigapp 80
+$ sudo podman port bigapp 80
 ```
 
 Now connect to the port via curl:
@@ -114,7 +112,7 @@ RUN chmod 755 /scripts/*
 RUN yum-config-manager --disable \* &> /dev/null
 RUN yum-config-manager --enable rhel-7-server-rpms
 
->>> The yum-config-manager method to managing repos can be time consuming during a "docker build"...
+>>> The yum-config-manager method to managing repos can be time consuming during a "podman build"...
 >>> whereas, enabling the necessary repo(s) during a "yum install" is much faster.
 
 # Common Deps
@@ -141,7 +139,7 @@ RUN yum -y install hostname
 >>> to keep them separated so that your "build/run/debug" cycle can 
 >>> take advantage of layers and caching. Just be sure to clean it up
 >>> before you publish. You can check out the history of the image you
->>> have created by running *docker history bigimg*.
+>>> have created by running *podman history bigimg*.
 
 # Add in wordpress sources 
 COPY latest.tar.gz /latest.tar.gz

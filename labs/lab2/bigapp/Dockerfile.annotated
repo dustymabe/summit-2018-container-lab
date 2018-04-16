@@ -15,7 +15,7 @@ RUN chmod 755 /scripts/*
 RUN yum-config-manager --disable \* &> /dev/null
 RUN yum-config-manager --enable rhel-7-server-rpms
 
->>> The yum-config-manager method to managing repos can be time consuming during a "docker build"...
+>>> The yum-config-manager method to managing repos can be time consuming during a "sudo podman build"...
 >>> whereas, enabling the necessary repo(s) during a "yum install" is much faster.
 
 # Common Deps
@@ -42,7 +42,7 @@ RUN yum -y install hostname
 >>> to keep them separated so that your "build/run/debug" cycle can 
 >>> take advantage of layers and caching. Just be sure to clean it up
 >>> before you publish. You can check out the history of the image you
->>> have created by running *docker history bigimg*.
+>>> have created by running *sudo podman history bigimg*.
 
 # Add in wordpress sources 
 COPY latest.tar.gz /latest.tar.gz

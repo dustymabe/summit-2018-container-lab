@@ -25,7 +25,7 @@
 # To resolve this, we explicitly set the
 #    --public-hostname and --routing-suffix
 #
-# We use the IP of the docker interface on our host for testing in a
+# We use the IP of the sudo podman interface on our host for testing in a
 # local environment, or the external listening IP if we want to expose
 # the cluster to the outside.
 #
@@ -33,8 +33,8 @@
 # 172.17.0.1 if not customized
 #
 #source ~/cleanup-oc.sh
-docker pull docker.io/ansibleplaybookbundle/origin-ansible-service-broker:sprint143
-docker tag docker.io/ansibleplaybookbundle/origin-ansible-service-broker:sprint143 docker.io/ansibleplaybookbundle/origin-ansible-service-broker:latest
+sudo podman pull docker.io/ansibleplaybookbundle/origin-ansible-service-broker:sprint143
+sudo podman tag docker.io/ansibleplaybookbundle/origin-ansible-service-broker:sprint143 docker.io/ansibleplaybookbundle/origin-ansible-service-broker:latest
 
 ASB_VERSION=ansible-service-broker-1.1.4-1
 NAMESPACE=ansible-service-broker
