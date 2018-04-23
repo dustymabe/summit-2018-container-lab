@@ -6,38 +6,10 @@ metadata:
   name: wordpress
   annotations:
     openshift.io/display-name: "WordPress MariaDB Example" 
-    description: "An example WordPress application with a MariaDB database.
+    description: "An example WordPress application with a MariaDB database."
     tags: "wordpress,php,mariadb,aws,loft"
     iconClass: "icon-php"
 objects:
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    labels:
-      app: mariadb
-    name: mariadb
-  spec:
-    tags:
-    - name: latest
-      from:
-        kind: DockerImage
-        name: localhost:5000/mariadb:latest
-      importPolicy:
-        insecure: true
-- apiVersion: v1
-  kind: ImageStream
-  metadata:
-    labels:
-      app: wordpress
-    name: wordpress
-  spec:
-    tags:
-    - name: latest
-      from:
-        kind: DockerImage
-        name: localhost:5000/wordpress:latest
-      importPolicy:
-        insecure: true
 - apiVersion: v1
   kind: DeploymentConfig
   metadata:
@@ -66,10 +38,10 @@ objects:
             value: ${DBPASS}
           - name: DBUSER
             value: ${DBUSER}
-          image: ''
+          image: 'localhost:5000/mariadb:latest'
           imagePullPolicy: Always
           livenessProbe:
-            initialDelaySeconds: 30
+            initialDelaySeconds: 45
             tcpSocket:
               port: 3306
             timeoutSeconds: 1
@@ -84,8 +56,7 @@ objects:
               - -c
               - MYSQL_PWD="$DBPASS" mysql -h 127.0.0.1 -u $DBUSER -D $DBNAME
                 -e 'SELECT 1'
-            initialDelaySeconds: 5
-            timeoutSeconds: 1
+            timeoutSeconds: 2
           volumeMounts:
           - mountPath: /run/mariadb
             name: mariadb-volume-1
@@ -104,14 +75,6 @@ objects:
           name: mariadb-volume-3
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - mariadb
-        from:
-          kind: ImageStreamTag
-          name: mariadb:latest
-      type: ImageChange
 - apiVersion: v1
   kind: Service
   metadata:
@@ -155,10 +118,10 @@ objects:
             value: ${DBPASS}
           - name: DB_ENV_DBUSER
             value: ${DBUSER}
-          image: ''
+          image: 'localhost:5000/wordpress:latest'
           imagePullPolicy: Always
           livenessProbe:
-            initialDelaySeconds: 30
+            initialDelaySeconds: 45
             tcpSocket:
               port: 8080
             timeoutSeconds: 1
@@ -167,9 +130,6 @@ objects:
           - containerPort: 8080
             protocol: TCP
           readinessProbe:
-            failureThreshold: 3
-            periodSeconds: 10
-            successThreshold: 1
             tcpSocket:
               port: 8080
             timeoutSeconds: 1
@@ -191,14 +151,6 @@ objects:
           name: wordpress-volume-3
     triggers:
     - type: ConfigChange
-    - imageChangeParams:
-        automatic: true
-        containerNames:
-        - wordpress
-        from:
-          kind: ImageStreamTag
-          name: wordpress:latest
-      type: ImageChange
 - apiVersion: v1
   kind: Service
   metadata:

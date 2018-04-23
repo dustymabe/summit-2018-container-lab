@@ -13,7 +13,7 @@ Expected completion: 20-30 minutes
 In the previous lab we created an "all-in-one" application. Let's enter the container and explore.
 
 ```bash
-$ docker exec -it bigapp /bin/bash
+$ sudo podman exec -t bigapp /bin/bash
 ```
 
 ### Services
@@ -57,11 +57,11 @@ Inspect the `mariadb.log` file to discover the database directory.
 
 Again, we have found some files that are in need of some non-volatile storage. The `/var/lib/mysql` should also be mounted to persistent storage on the host.
 
-Now that we've inspected the container stop and remove it. `docker ps -ql` prints the ID of the latest created container.  First you will need to exit the container.
+Now that we've inspected the container stop and remove it. `podman ps -ql` prints the ID of the latest created container.  First you will need to exit the container.
 ```bash
 [CONTAINER_NAMESPACE]# exit
-$ docker stop $(docker ps -ql)
-$ docker rm $(docker ps -ql)
+$ sudo podman stop $(sudo podman ps -ql)
+$ sudo podman rm $(sudo podman ps -ql)
 ```
 
 ## Create the Dockerfiles
@@ -84,7 +84,7 @@ $ ls -lR wordpress
 
 1. Add a `FROM` line that uses a specific image tag. Also add `MAINTAINER` information.
 
-        FROM registry.access.redhat.com/rhel7:7.4-129
+        FROM registry.access.redhat.com/rhel7:7.5-231
         MAINTAINER Student <student@example.com>
 
 1. Add the required packages. We'll include `yum clean all` at the end to clear the yum cache.
@@ -129,7 +129,7 @@ Now we'll create the Wordpress Dockerfile. (As before, there is a reference file
 
 1. Add a `FROM` line that uses a specific image tag. Also add `MAINTAINER` information.
 
-        FROM registry.access.redhat.com/rhel7:7.4-129
+        FROM registry.access.redhat.com/rhel7:7.5-231
         MAINTAINER Student <student@example.com>
 
 1. Add the required packages. We'll include `yum clean all` at the end to clear the yum cache.
@@ -143,7 +143,7 @@ Now we'll create the Wordpress Dockerfile. (As before, there is a reference file
         ADD scripts /scripts
         RUN chmod 755 /scripts/*
 
-1. Add the Wordpress source from gzip tar file. docker will extract the files. Also, modify permissions to support non-root container runtime. Switch to port 8080 for non-root apache runtime.
+1. Add the Wordpress source from gzip tar file. podman will extract the files. Also, modify permissions to support non-root container runtime. Switch to port 8080 for non-root apache runtime.
 
         COPY latest.tar.gz /latest.tar.gz
         RUN tar xvzf /latest.tar.gz -C /var/www/html --strip-components=1 && \
@@ -176,65 +176,63 @@ Save the Dockerfile and exit the editor.
 
 Now we are ready to build the images to test our Dockerfiles.
 
-1. Build each image. When building an image docker requires the path to the directory of the Dockerfile.
+1. Build each image. When building an image podman requires the path to the directory of the Dockerfile.
 
-        $ docker build -t mariadb mariadb/
-        $ docker build -t wordpress wordpress/
+        $ sudo podman build -t mariadb mariadb/
+        $ sudo podman build -t wordpress wordpress/
 
-1. If the build does not return `Successfully built <image_id>` then resolve the issue and build again. Once successful, list the images.
+1. If the build does not succeed then resolve the issue and build again. Once successful, list the images.
 
-        $ docker images
+        $ sudo podman images
 
-1. Create the local directories for persistent storage & set permissions for container runtime.
+1. Create the local directories for persistent storage.
 
-        $ sudo mkdir -p /var/lib/mariadb /var/lib/wp_uploads
-        $ sudo chown 27 /var/lib/mariadb /var/lib/wp_uploads
+        $ mkdir -p ~/workspace/logs ~/workspace/mysql ~/workspace/run ~/workspace/wp_logs
 
-1. Run the database image to confirm connectivity. It takes some time to discover all of the necessary `docker run` options.
+1. Run the wordpress image first. It takes some time to discover all of the necessary `podman run` options.
 
   * `-d` to run in daemonized mode
-  * `-v <host/path>:<container/path>:Z` to bindmount the directory for persistent storage. The :Z option will label the content inside the container with the exact SELinux MCS label that the container runs. Below we'll inspect the labels on the directories before and after we run the container to see the changes on the labels in the directories
-  * `-p <host_port>:<container_port>` to map the container port to the host port
-```bash
-$ ls -lZd /var/lib/mariadb
-$ docker run -d -v /var/lib/mariadb:/var/lib/mysql:Z -p 3306:3306 -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
-```
+  * `-v <host/path>:<container/path>:z` to bindmount the directory for persistent storage. The :z option will label the content inside the container with the SELinux MCS label that the container uses. Below we'll inspect the labels on the directories before and after we run the container to see the changes on the labels in the directories
+  * `-p <container_port>` to map the container port to the host port
 
-Note: See the difference in SELinux context after running w/ a volume & :Z.
 ```bash
-$ ls -lZd /var/lib/mariadb
-$ docker exec $(docker ps -ql) ps aux
+$ ls -lZd ~/workspace/wp_logs
+$ sudo podman run -d -p 8080 -v ~/workspace/wp_logs:/var/log/httpd:z -e DB_ENV_DBUSER=user -e DB_ENV_DBPASS=mypassword -e DB_ENV_DBNAME=mydb -e DB_HOST=0.0.0.0 -e DB_PORT=3306 --name wordpress wordpress
+```
+Note: See the difference in SELinux context after running w/ a volume & :z.
+```bash
+$ ls -lZd ~/workspace/wp_logs
+$ sudo podman exec wordpress ps aux
 ```
 
 Check volume directory ownership inside the container
 ```bash
-$ docker exec $(docker ps -ql) stat --format="%U" /var/lib/mysql
-$ docker logs $(docker ps -ql)
-$ docker ps
-$ curl localhost:3306
+$ sudo podman exec wordpress stat --format="%U" /var/log/httpd/access_log
+$ sudo podman logs wordpress
+$ sudo podman ps
 ```
 
   **Note**: the `curl` command does not return useful information but demonstrates
             a response on the port.
 
 5. Test the Wordpress image to confirm connectivity. Additional run options:
-  * `--link <name>:<alias>` to link to the database container
+  * `--network=container:<alias>` to link to the wordpress container
 ```bash
-$ ls -lZd /var/lib/wp_uploads
-$ docker run -d -v /var/lib/wp_uploads:/var/www/html/wp-content/uploads:Z -p 8080:8080 --link mariadb:db --name wordpress wordpress
+$ ls -lZd ~/workspace/mysql
+$ sudo podman run -d --network=container:wordpress -v ~/workspace/logs:/var/log/mariadb:z -v ~/workspace/mysql:/var/lib/mysql:z -v ~/workspace/run:/run/mariadb:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
 ```
-
-Note: See the difference in SELinux context after running w/ a volume & :Z.
+Note: See the difference in SELinux context after running w/ a volume & :z.
 ```bash
-$ ls -lZd /var/lib/wp_uploads
-$ docker exec $(docker ps -ql) ps aux
+$ ls -lZd ~/workspace/mysql
+$ sudo podman exec mariadb ps aux
 ```
 
 Check volume directory ownership inside the container
 ```bash
-$ docker exec $(docker ps -ql) stat --format="%U" /var/www/html/wp-content/uploads
-$ docker logs $(docker ps -ql)
-$ docker ps
+$ sudo podman exec mariadb stat --format="%U" /var/log/mariadb/mariadb.log
+$ sudo podman logs mariadb
+$ sudo podman ps
+$ sudo podman exec mariadb curl localhost:3306
 $ curl -L http://localhost:8080
 ```
 
@@ -242,57 +240,38 @@ You may also load the Wordpress application in a browser to test its full functi
 
 ### Simplify running containers with the atomic CLI
 
-When we have a working `docker run` recipe we want a way to communicate that to the end-user. The `atomic` tool is installed on both RHEL and Atomic hosts. It is useful in controlling the Atomic host as well as running containers. It is able to parse the `LABEL` instruction in a `Dockerfile`. The `LABEL run` instruction prescribes how the image is to be run. In addition to providing informative human-readable metadata, `LABEL`s may be used by the `atomic` CLI to run an image the way a developer designed it to run. This avoids having to copy+paste from README files. For more information on the `atomic` command, please see the [documentation here](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html/cli_reference/atomic_commands).
+When we have a working `podman run` recipe we want a way to communicate that to the end-user. The `atomic` tool is installed on both RHEL and Atomic hosts. It is useful in controlling the Atomic host as well as running containers. It is able to parse the `LABEL` instruction in a `Dockerfile`. The `LABEL run` instruction prescribes how the image is to be run. In addition to providing informative human-readable metadata, `LABEL`s may be used by the `atomic` CLI to run an image the way a developer designed it to run. This avoids having to copy+paste from README files. For more information on the `atomic` command, please see the [documentation here](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html/cli_reference/atomic_commands).
 
-1. Edit `wordpress/Dockerfile` and add the following instruction near the bottom of the file above the CMD line.
+1. Edit `mariadb/Dockerfile` and add the following instruction near the bottom of the file above the CMD line.
 
-        LABEL run docker run -d -v /var/lib/wp_uploads:/var/www/html/wp-content/uploads:Z -p 8080:8080 --link=mariadb:db --name NAME -e NAME=NAME -e IMAGE=IMAGE IMAGE
+        LABEL run podman run -d --network=container:wordpress -v ~/workspace/logs:/var/log/mariadb:z -v ~/workspace/mysql:/var/lib/mysql:z -v ~/workspace/run:/run/mariadb:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
 
-1. Rebuild the Wordpress image. The image cache will be used so only the changes will need to be built.
+1. Rebuild the MariaDB image. The image cache will be used so only the changes will need to be built.
 
-        $ docker build -t wordpress wordpress/
+        $ sudo podman build -t mariadb mariadb/
 
-1. Re-run the Wordpress image using the `atomic` CLI. We don't need to use a complicated, error-prone `docker run` string. Test using the methods from the earlier step. In addition, we are going to launch the image using the `atomic` command. Before we can do that, we'll install it as noted below.
+1. Re-run the MariaDB image using the `atomic` CLI. We don't need to use a complicated, error-prone `podman run` string. Test using the methods from the earlier step. In addition, we are going to launch the image using the `atomic` command. Before we can do that, we'll install it as noted below.
 
-        $ docker stop wordpress
-        $ docker rm wordpress
-        $ atomic run wordpress
+        $ sudo podman rm -f mariadb
+        # how do we use podman instead of docker?
+        $ sudo atomic run mariadb
         $ curl -L http://localhost:8080
 
 ### Push images to local registry
 
-1. Once satisfied with the images tag them with the URI of the local lab local registry. The tag is what OpenShift uses to identify the particular image that we want to import from the registry.
-
-        $ docker tag mariadb localhost:5000/mariadb
-        $ docker tag wordpress localhost:5000/wordpress
-        $ docker images
-
 1. Push the images
 
-        $ docker push localhost:5000/mariadb
-        $ docker push localhost:5000/wordpress
+        $ sudo podman images
+        $ sudo podman push --tls-verify=false mariadb localhost:5000/mariadb
+        $ sudo podman push --tls-verify=false wordpress localhost:5000/wordpress
 
 ## Clean Up
 
-Stop the mariadb and wordpress containers.
+Remove the mariadb and wordpress containers.
 
 ```bash
-$ docker ps
-$ docker stop mariadb wordpress
+$ sudo podman rm -f mariadb wordpress
+$ sudo podman ps -a
 ```
-
-After iterating through running docker images you will likely end up with many stopped containers. List them.
-
-```bash
-$ docker ps -a
-```
-
-This command is useful in freeing up disk space by removing all stopped containers.
-
-```bash
-$ docker rm $(docker ps -qa)
-```
-
-This command will result in a cosmetic error because it is trying to stop running containers like the registry and the OpenShift containers that are running. These errors can safely be ignored.
 
 In the [next lab](../lab4/chapter4.md) we introduce container orchestration via OpenShift.
