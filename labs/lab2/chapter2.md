@@ -43,18 +43,18 @@ $ sudo podman build -t bigimg .
 
 To run the podman container based on the image we just built use the following command:
 ```bash
-$ sudo podman run -p 80 --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
+$ sudo podman run -P --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
 $ sudo podman ps
 ```
 
-Take a look at some of the arguments we are passing to docker.  We are telling podman that the image will be listening on port 80 inside the container and to randomly assign a port on the host that maps to port 80 in the container. Next we are providing a ```name``` of ```bigapp```. After that we are setting some environment variables that will be passed into the container and consumed by the configuration scripts to set up the container. Finally, we pass it the name of the image that we built in the prior step.
+Take a look at some of the arguments we are passing to podman.  We are telling podman that the image will be listening on port 80 inside the container and to randomly assign a port on the host that maps to port 80 in the container. Next we are providing a ```name``` of ```bigapp```. After that we are setting some environment variables that will be passed into the container and consumed by the configuration scripts to set up the container. Finally, we pass it the name of the image that we built in the prior step.
 
 ## Exploring the Running Container
 
 Now that the container is running we will explore the container to see what's going on inside. First off, the processes were started and any output that goes to stdout will come to the console of the container. You can run `podman logs` to see the output. To follow 
 or "tail" the logs use the `-f` option.
 
-**__NOTE:__** You are able to use the **name** of the container rather than the container id for most `docker` commands.
+**__NOTE:__** You are able to use the **name** of the container rather than the container id for most `podman` (or `docker`) commands.
 ```bash
 $ sudo podman logs -f bigapp
 ```
@@ -69,7 +69,7 @@ $ sudo podman exec -t bigapp /bin/bash
 [CONTAINER_NAMESPACE]# tail /var/log/httpd/access_log /var/log/httpd/error_log /var/log/mariadb/mariadb.log
 ```
 
-Explore the running processes.  Here you will see `httpd` and `MySQL` running in the background.
+Explore the running processes.  Here you will see `httpd` and `MySQL` running.
 
 ```bash
 [CONTAINER_NAMESPACE]# ps aux
@@ -86,7 +86,7 @@ $ sudo podman port bigapp 80
 
 Now connect to the port via curl:
 ```bash
-$ curl -L http://localhost:<port>
+$ curl -L http://localhost:<port>/
 ```
 
 ## Review Dockerfile practices
@@ -164,7 +164,7 @@ More generally:
 * Place rarely changing statements towards the top of the file. This allows the re-use of cached image layers when rebuilding.
 * Group statements into multi-line statements. This avoids layers that have files needed only for build.
 * Use `LABEL run` instruction to prescribe how the image is to be run.
-* Avoid running application as root user where possible.
+* Avoid running applications in the container as root user where possible.
 * Use `VOLUME` instruction to create a host mount point for persistent storage.
 
 In the [next lab](../lab3/chapter3.md) we will fix these issues and break the application up into separate services.
