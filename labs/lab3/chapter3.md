@@ -4,7 +4,7 @@ In this lab you will deconstruct an application into microservices, creating a m
 
 This lab should be performed on **YOUR ASSIGNED AWS VM** as `ec2-user` unless otherwise instructed.
 
-NOTE: In the steps below we use `vi` to edit files.  If you are unfamiliar this is a [good beginner's guide](https://www.howtogeek.com/102468/a-beginners-guide-to-editing-text-files-with-vi/).
+NOTE: In the steps below we use `vi` to edit files.  If you are unfamiliar, this is a [good beginner's guide](https://www.howtogeek.com/102468/a-beginners-guide-to-editing-text-files-with-vi/). In short, "ESC" switches to command mode, "i" let's you edit, "wq" let's you save and exit, "q!" let's you exit without saving (all executed in command mode).
 
 Expected completion: 20-30 minutes
 
@@ -46,7 +46,7 @@ The Wordpress tar file was extracted into `/var/www/html`. List the files.
 [CONTAINER_NAMESPACE]# ls -l /var/www/html
 ```
 
-These are sensitive files for our application and it would be unfortunate if changes to these files were lost. Currently the running container does not have any associated "volumes", which means that if this container dies all changes will be lost. This mount point in the container should be backed by a "volume". Later in this lab we'll use a host directory backed "volume" to make sure these files persist.
+These are sensitive files for our application and it would be unfortunate if changes to these files were lost. Currently the running container does not have any associated "volumes", which means that if this container dies all changes will be lost. This mount point in the container should be backed by a "volume". Later in this lab, we'll use a directory from our host machine to back the "volume" to make sure these files persist.
 
 #### Database
 
@@ -55,18 +55,20 @@ Inspect the `mariadb.log` file to discover the database directory.
 [CONTAINER_NAMESPACE]# grep databases /var/log/mariadb/mariadb.log
 ```
 
-Again, we have found some files that are in need of some non-volatile storage. The `/var/lib/mysql` should also be mounted to persistent storage on the host.
+Again, we have found some files that are in need of some non-volatile storage. The `/var/lib/mysql` directory should also be mounted to persistent storage on the host.
 
-Now that we've inspected the container stop and remove it. `podman ps -ql` prints the ID of the latest created container.  First you will need to exit the container.
+Now that we've inspected the container stop and remove it. `podman ps -ql` (don't forget `sudo`) prints the ID of the latest created container.  First you will need to exit the container.
 ```bash
 [CONTAINER_NAMESPACE]# exit
 $ sudo podman stop $(sudo podman ps -ql)
 $ sudo podman rm $(sudo podman ps -ql)
 ```
 
+If we are confident in what we are doing we can also "single-line" the above with `sudo podman rm -f $(sudo podman ps -ql)` by itself.
+
 ## Create the Dockerfiles
 
-Now we will develop the two images. Using the information above and the Dockerfile from Lab 2 as a guide we will create Dockerfiles for each service. For this lab we have created a directory for each service with the required files for the service. Please explore these directories and check out the contents and checkout the startup scripts.
+Now we will develop the two images. Using the information above and the Dockerfile from Lab 2 as a guide, we will create Dockerfiles for each service. For this lab we have created a directory for each service with the required files for the service. Please explore these directories and check out the contents and the startup scripts.
 ```bash
 $ mkdir ~/workspace
 $ cd ~/workspace
@@ -105,7 +107,7 @@ $ ls -lR wordpress
 
         EXPOSE 3306
 
-1. Add a `VOLUME` instruction. This ensures data will be persisted even if the container is lost.
+1. Add a `VOLUME` instruction. This ensures data will be persisted even if the container is lost. However, it won't do anything unless, when running the container, host directories are mapped to the volumes.
 
         VOLUME /var/lib/mysql /var/log/mariadb /run/mariadb
 
@@ -189,20 +191,20 @@ Now we are ready to build the images to test our Dockerfiles.
 
         $ mkdir -p ~/workspace/logs ~/workspace/mysql ~/workspace/run ~/workspace/wp_logs
 
-1. Run the wordpress image first. It takes some time to discover all of the necessary `podman run` options.
+1. Run the wordpress image first. See an explanation of all the `podman run` options we will be using below:
 
   * `-d` to run in daemonized mode
-  * `-v <host/path>:<container/path>:z` to bindmount the directory for persistent storage. The :z option will label the content inside the container with the SELinux MCS label that the container uses. Below we'll inspect the labels on the directories before and after we run the container to see the changes on the labels in the directories
+  * `-v <host/path>:<container/path>:z` to mount (technically, "bindmount") the directory for persistent storage. The :z option will label the content inside the container with the SELinux MCS label that the container uses so that the container can write to the directory. Below we'll inspect the labels on the directories before and after we run the container to see the changes on the labels in the directories
   * `-p <container_port>` to map the container port to the host port
 
 ```bash
 $ ls -lZd ~/workspace/wp_logs
 $ sudo podman run -d -p 8080 -v ~/workspace/wp_logs:/var/log/httpd:z -e DB_ENV_DBUSER=user -e DB_ENV_DBPASS=mypassword -e DB_ENV_DBNAME=mydb -e DB_HOST=0.0.0.0 -e DB_PORT=3306 --name wordpress wordpress
 ```
-Note: See the difference in SELinux context after running w/ a volume & :z.
+Note: See the difference in SELinux context after running with a volume & :z.
 ```bash
 $ ls -lZd ~/workspace/wp_logs
-$ sudo podman exec wordpress ps aux
+$ sudo podman exec wordpress ps aux #we can also directly exec commands in the container
 ```
 
 Check volume directory ownership inside the container
@@ -210,12 +212,13 @@ Check volume directory ownership inside the container
 $ sudo podman exec wordpress stat --format="%U" /var/log/httpd/access_log
 $ sudo podman logs wordpress
 $ sudo podman ps
+$ curl localhost:8080 #note we indicated the port to use in the run command above
 ```
 
-  **Note**: the `curl` command does not return useful information but demonstrates
+  **Note**: the `curl` command returns an error but demonstrates
             a response on the port.
 
-5. Test the Wordpress image to confirm connectivity. Additional run options:
+5. Test the Wordpress image to confirm connectivity. For the mariadb container we need to specify an additional option to make sure it is in the same "network" as the apache/wordpress container and not visible outside that container:
   * `--network=container:<alias>` to link to the wordpress container
 ```bash
 $ ls -lZd ~/workspace/mysql
@@ -230,32 +233,18 @@ $ sudo podman exec mariadb ps aux
 Check volume directory ownership inside the container
 ```bash
 $ sudo podman exec mariadb stat --format="%U" /var/log/mariadb/mariadb.log
+```
+
+Now we can check out how the database is doing
+```bash
 $ sudo podman logs mariadb
 $ sudo podman ps
 $ sudo podman exec mariadb curl localhost:3306
-$ curl -L http://localhost:8080
+$ curl localhost:3306 #as you can see the db is not generally visible
+$ curl -L http://localhost:8080 #and now wp is happier!
 ```
 
 You may also load the Wordpress application in a browser to test its full functionality @ `http://<YOUR AWS VM PUBLIC DNS NAME HERE>:8080`.
-
-### Simplify running containers with the atomic CLI
-
-When we have a working `podman run` recipe we want a way to communicate that to the end-user. The `atomic` tool is installed on both RHEL and Atomic hosts. It is useful in controlling the Atomic host as well as running containers. It is able to parse the `LABEL` instruction in a `Dockerfile`. The `LABEL run` instruction prescribes how the image is to be run. In addition to providing informative human-readable metadata, `LABEL`s may be used by the `atomic` CLI to run an image the way a developer designed it to run. This avoids having to copy+paste from README files. For more information on the `atomic` command, please see the [documentation here](https://access.redhat.com/documentation/en-us/red_hat_enterprise_linux_atomic_host/7/html/cli_reference/atomic_commands).
-
-1. Edit `mariadb/Dockerfile` and add the following instruction near the bottom of the file above the CMD line.
-
-        LABEL run podman run -d --network=container:wordpress -v ~/workspace/logs:/var/log/mariadb:z -v ~/workspace/mysql:/var/lib/mysql:z -v ~/workspace/run:/run/mariadb:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
-
-1. Rebuild the MariaDB image. The image cache will be used so only the changes will need to be built.
-
-        $ sudo podman build -t mariadb mariadb/
-
-1. Re-run the MariaDB image using the `atomic` CLI. We don't need to use a complicated, error-prone `podman run` string. Test using the methods from the earlier step. In addition, we are going to launch the image using the `atomic` command. Before we can do that, we'll install it as noted below.
-
-        $ sudo podman rm -f mariadb
-        # how do we use podman instead of docker?
-        $ sudo atomic run mariadb
-        $ curl -L http://localhost:8080
 
 ### Push images to local registry
 
