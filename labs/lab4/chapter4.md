@@ -49,7 +49,7 @@ $ NEW_CONTAINER_ID=$(sudo podman inspect --format '{{ .ID }}' mariadb)
 $ echo -e "$OLD_CONTAINER_ID\n$NEW_CONTAINER_ID"
 ```
 
-Hmmm. Well, that is cool, they are exactly the same. OK, so all in all, about what you would expect for a web server and a database running on VMs, but a whole lot faster. Let's take a look at the site now.
+Hmmm. Well, that is cool, they are exactly the same. OK, so all in all, about what you would expect for a web server and a database running on VMs, but a whole lot faster (well, the starting is). Let's take a look at the site now.
 
 * web browser -> `http://<YOUR AWS VM PUBLIC DNS NAME HERE>:8080`
 OR
@@ -212,7 +212,7 @@ $ oc describe pod wordpress
 
 Ok, now let's kill them off so we can introduce the services that will let them more dynamically find each other.
 ```bash
-$ oc delete po/mariadb po/wordpress
+$ oc delete pod/mariadb pod/wordpress
 ```
 
 Verify they are terminating or are gone:
