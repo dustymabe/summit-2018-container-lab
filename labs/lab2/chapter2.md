@@ -108,31 +108,24 @@ ADD  scripts /scripts
 
 RUN chmod 755 /scripts/*
 
-# Disable all but the necessary repo(s)
-RUN yum-config-manager --disable \* &> /dev/null
-RUN yum-config-manager --enable rhel-7-server-rpms
-
->>> The yum-config-manager method to managing repos can be time consuming during a "podman build"...
->>> whereas, enabling the necessary repo(s) during a "yum install" is much faster.
-
 # Common Deps
-RUN yum -y install openssl
-RUN yum -y install psmisc
+RUN yum -y install openssl --disablerepo "*" --enablerepo rhel-7-server-rpms
+RUN yum -y install psmisc --disablerepo "*" --enablerepo rhel-7-server-rpms
 
 >>> Running a yum clean all in the same statement would clear the yum
 >>> cache in our intermediate cached image layer
 
 # Deps for wordpress
-RUN yum -y install httpd
-RUN yum -y install php
-RUN yum -y install php-mysql
-RUN yum -y install php-gd
-RUN yum -y install tar
+RUN yum -y install httpd --disablerepo "*" --enablerepo rhel-7-server-rpms
+RUN yum -y install php --disablerepo "*" --enablerepo rhel-7-server-rpms
+RUN yum -y install php-mysql --disablerepo "*" --enablerepo rhel-7-server-rpms
+RUN yum -y install php-gd --disablerepo "*" --enablerepo rhel-7-server-rpms
+RUN yum -y install tar --disablerepo "*" --enablerepo rhel-7-server-rpms
 
 # Deps for mariadb
-RUN yum -y install mariadb-server
-RUN yum -y install net-tools
-RUN yum -y install hostname
+RUN yum -y install mariadb-server --disablerepo "*" --enablerepo rhel-7-server-rpms
+RUN yum -y install net-tools --disablerepo "*" --enablerepo rhel-7-server-rpms
+RUN yum -y install hostname --disablerepo "*" --enablerepo rhel-7-server-rpms
 
 >>> Can group all of the above into one yum statement to minimize 
 >>> intermediate layers. However, during development, it can be nice 
