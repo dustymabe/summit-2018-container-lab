@@ -6,6 +6,7 @@ RUN yum -y install docker-registry --disablerepo "*" \
     yum clean all
 
 EXPOSE 5000
+VOLUME /var/lib/registry
 
 ENTRYPOINT ["/usr/bin/registry"]
 
