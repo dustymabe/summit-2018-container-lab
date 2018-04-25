@@ -1,6 +1,8 @@
 ## Introduction
 
-In this lab, we are going to build upon the previous labs and leverage what we have learned to utilize the OpenShift Ansible Service Broker. As part of this process, we will be using the latest upstream release available for this project. By the time you are finished with the lab, you will have deployed an application, a database and binded the two together. It should become evident how this self service process can improve the productivity of developers on your team.
+In this lab, we are going to build upon the previous labs and leverage what we have learned to utilize the [Automation Broker](http://automationbroker.io/) (nee OpenShift Ansible Service Broker). As part of this process, we will be using the latest upstream release available for this project. By the time you are finished with the lab, you will have deployed an application, a database and bound the two together. It should become evident how this self service process can improve the productivity of developers on your team.
+
+If you are unfamiliar with the Automation Broker, in short, it provides pre-packaged, multi-service applications using a container for distribution. The Automation Broker uses Ansible as its definition language but does not require significant Ansible knowledge or experience.
 
 Expected completion: 10-20 minutes
 
@@ -74,7 +76,7 @@ Now, we are going to deploy our first application using the ansible broker.
 - Click `Next`.
 - Click the dropdown under `Add to Project` and select `Create Project`.
 - Give the project a name `apb`.  Leave the rest of the options as default and click `Create`.
-- Now you will notice that the service is being provisioned. Click on the `Continue to the project overview` button. This will take you to the new project namespace that was created when we made the application.
+- Now you will notice that the service is being provisioned. Click on the `Continue to the project overview` link (in the middle of the page). This will take you to the new project namespace that was created when we made the application.
 - Give the deployment a minute or so to finish, and in the upper right hand side, you will see a new URL that points to your application.  Click on that and it will open a new tab.
 - Go back to the project, explore the environment, view logs, look at events, scale the application up, deploy it again, etc...
 - Now go back to your CLI and explore what was just created.
@@ -94,7 +96,7 @@ $ oc status
 ```
 
 ## Create Database
-Now that we have deployed an application, you'll notice that its database information says `No database connected`.  Let's create a database and then bind from the hello-world app.
+Now that we have deployed an application, you'll notice that its database information says `No database connected`.  Let's create a database and then bind the hello-world app to it.
 
 - Return to the OpenShift web console.
 - In the upper right part of the page, click `Add to Project` and then `Browse Catalog`.
@@ -117,7 +119,7 @@ Now that we have deployed an application, you'll notice that its database inform
 - Click `Close`.
 - Let's look at the newly created secret by clicking `Resources` on the left menu and then `Secrets`. The newest secret should be at the top of the list. Click on the newest secret and reveal its contents.
 - Now let's bind the application to our database by clicking `Add to Application` in the upper right corner.
-- Select the `hello-world` app from the drop-down and click `Save`.
+- Select the `hello-world` (it may be more cryptic than that) app from the drop-down and click `Save`.
 - Return to the Project Overview page by clicking `Overview` on the left menu.
 - Once the new deployment is finished, go back to the hello-world application url and refresh. Our application is now connected to the DB as evidenced by the populated PostgreSQL information.
 
