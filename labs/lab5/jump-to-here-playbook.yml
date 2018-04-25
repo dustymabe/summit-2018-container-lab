@@ -1,0 +1,38 @@
+--- 
+- hosts: localhost
+  become_method: sudo
+  tasks:
+  - name: build registry
+    command: podman build -t registry /home/ec2-user/summit-2018-container-lab/labs/lab1/registry 
+    become: true
+
+  - name: build mariadb
+    command: > 
+      podman build 
+      -t mariadb 
+      -f /home/ec2-user/summit-2018-container-lab/labs/lab3/mariadb/Dockerfile.reference /home/ec2-user/summit-2018-container-lab/labs/lab3/mariadb/
+    become: true
+
+  - name: build wordpress
+    command: >
+      podman build 
+      -t wordpress 
+      -f /home/ec2-user/summit-2018-container-lab/labs/lab3/wordpress/Dockerfile.reference
+      /home/ec2-user/summit-2018-container-lab/labs/lab3/wordpress/
+    become: true
+
+  - name: launch registry
+    command: podman run --name registry -p 5000 -d registry
+    become: true
+
+  - name: load mariadb into registry
+    command: podman push --tls-verify=false mariadb localhost:5000/mariadb
+    become: true
+
+  - name: load wordpress into registry
+    command: podman push --tls-verify=false wordpress localhost:5000/wordpress
+    become: true
+
+  - name: launch openshift
+    command: /bin/bash /home/ec2-user/start-oc.sh
+    become: false
