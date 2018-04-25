@@ -150,7 +150,6 @@ Now we'll create the Wordpress Dockerfile. (As before, there is a reference file
         COPY latest.tar.gz /latest.tar.gz
         RUN tar xvzf /latest.tar.gz -C /var/www/html --strip-components=1 && \
             rm /latest.tar.gz && \
-            usermod -u 27 apache && \
             sed -i 's/^Listen 80/Listen 8080/g' /etc/httpd/conf/httpd.conf && \
             APACHE_DIRS="/var/www/html /usr/share/httpd /var/log/httpd /run/httpd" && \
             chown -R apache:0 ${APACHE_DIRS} && \
@@ -189,7 +188,7 @@ Now we are ready to build the images to test our Dockerfiles.
 
 1. Create the local directories for persistent storage.
 
-        $ mkdir -p ~/workspace/logs ~/workspace/mysql ~/workspace/run ~/workspace/wp_logs
+        $ mkdir -p ~/workspace/mysql ~/workspace/uploads
 
 1. Run the wordpress image first. See an explanation of all the `podman run` options we will be using below:
 
@@ -198,21 +197,16 @@ Now we are ready to build the images to test our Dockerfiles.
   * `-p <container_port>` to map the container port to the host port
 
 ```bash
-$ ls -lZd ~/workspace/wp_logs
-$ sudo podman run -d -p 8080 -v ~/workspace/wp_logs:/var/log/httpd:z -e DB_ENV_DBUSER=user -e DB_ENV_DBPASS=mypassword -e DB_ENV_DBNAME=mydb -e DB_HOST=0.0.0.0 -e DB_PORT=3306 --name wordpress wordpress
+$ ls -lZd ~/workspace/uploads
+$ sudo podman run -d -p 8080 -v ~/workspace/uploads:/var/www/html/wp-content/uploads:z -e DB_ENV_DBUSER=user -e DB_ENV_DBPASS=mypassword -e DB_ENV_DBNAME=mydb -e DB_HOST=0.0.0.0 -e DB_PORT=3306 --name wordpress wordpress
 ```
 Note: See the difference in SELinux context after running with a volume & :z.
 ```bash
-$ ls -lZd ~/workspace/wp_logs
+$ ls -lZd ~/workspace/uploads
 $ sudo podman exec wordpress ps aux #we can also directly exec commands in the container
-```
-
-Check volume directory ownership inside the container
-```bash
-$ sudo podman exec wordpress stat --format="%U" /var/log/httpd/access_log
 $ sudo podman logs wordpress
 $ sudo podman ps
-$ curl localhost:8080 #note we indicated the port to use in the run command above
+$ curl -L http://localhost:8080 #note we indicated the port to use in the run command above
 ```
 
   **Note**: the `curl` command returns an error but demonstrates
@@ -222,17 +216,17 @@ $ curl localhost:8080 #note we indicated the port to use in the run command abov
   * `--network=container:<alias>` to link to the wordpress container
 ```bash
 $ ls -lZd ~/workspace/mysql
-$ sudo podman run -d --network=container:wordpress -v ~/workspace/logs:/var/log/mariadb:z -v ~/workspace/mysql:/var/lib/mysql:z -v ~/workspace/run:/run/mariadb:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
+$ sudo podman run -d --network=container:wordpress -v ~/workspace/mysql:/var/lib/mysql:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
 ```
 Note: See the difference in SELinux context after running w/ a volume & :z.
 ```bash
-$ ls -lZd ~/workspace/mysql
+$ ls -lZ ~/workspace/mysql
 $ sudo podman exec mariadb ps aux
 ```
 
 Check volume directory ownership inside the container
 ```bash
-$ sudo podman exec mariadb stat --format="%U" /var/log/mariadb/mariadb.log
+$ sudo podman exec mariadb stat --format="%U" /var/lib/mysql/mysql
 ```
 
 Now we can check out how the database is doing
@@ -240,19 +234,42 @@ Now we can check out how the database is doing
 $ sudo podman logs mariadb
 $ sudo podman ps
 $ sudo podman exec mariadb curl localhost:3306
+$ sudo podman exec mariadb mysql -u user --password=mypassword -e 'show databases'
 $ curl localhost:3306 #as you can see the db is not generally visible
 $ curl -L http://localhost:8080 #and now wp is happier!
 ```
 
 You may also load the Wordpress application in a browser to test its full functionality @ `http://<YOUR AWS VM PUBLIC DNS NAME HERE>:8080`.
 
+## Deploy a Container Registry
+
+Let's deploy a simple registry to store our images.
+
+Inspect the Dockerfile that has been prepared.
+```bash
+$ cd ~/summit-2018-container-lab/labs/lab3/
+$ cat registry/Dockerfile
+```
+
+Build & run the registry
+```bash
+$ sudo podman build -t registry registry/
+$ sudo podman run --name registry -p 5000 -d registry
+```
+
+Confirm the registry is running.
+```bash
+$ sudo podman ps
+```
+
 ### Push images to local registry
 
-1. Push the images
-
-        $ sudo podman images
-        $ sudo podman push --tls-verify=false mariadb localhost:5000/mariadb
-        $ sudo podman push --tls-verify=false wordpress localhost:5000/wordpress
+Push the images
+```bash
+$ sudo podman images
+$ sudo podman push --tls-verify=false mariadb localhost:5000/mariadb
+$ sudo podman push --tls-verify=false wordpress localhost:5000/wordpress
+```
 
 ## Clean Up
 

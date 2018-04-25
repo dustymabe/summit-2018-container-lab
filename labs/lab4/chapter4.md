@@ -11,8 +11,9 @@ Let's start with a little experimentation. I am sure you are all excited about y
 So, let's see what will happen. Launch the site:
 
 ```bash
-$ sudo podman run -d -p 8080 -v ~/workspace/wp_logs:/var/log/httpd:z -e DB_ENV_DBUSER=user -e DB_ENV_DBPASS=mypassword -e DB_ENV_DBNAME=mydb -e DB_HOST=0.0.0.0 -e DB_PORT=3306 --name wordpress wordpress
-$ sudo podman run -d --network=container:wordpress -v ~/workspace/logs:/var/log/mariadb:z -v ~/workspace/mysql:/var/lib/mysql:z -v ~/workspace/run:/run/mariadb:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
+$ sudo podman run -d -p 8080 -v ~/workspace/uploads:/var/www/html/wp-content/uploads:z -e DB_ENV_DBUSER=user -e DB_ENV_DBPASS=mypassword -e DB_ENV_DBNAME=mydb -e DB_HOST=0.0.0.0 -e DB_PORT=3306 --name wordpress wordpress
+$ mkdir -p ~/workspace/mysql_logs ~/workspace/mysql_run
+$ sudo podman run -d --network=container:wordpress -v ~/workspace/mysql:/var/lib/mysql:z -v ~/workspace/mysql_logs:/var/log/mariadb:z -v ~/workspace/mysql_run:/run/mariadb:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
 ```
 
 Take a look at the site in your web browser on your machine using 
@@ -61,7 +62,7 @@ And.. Your site is back! Fortunately wordpress seems to be designed such that it
 
 Finally, let's kill off these containers to prepare for the next section.
 ```bash
-$ sudo podman rm -f wordpress mariadb
+$ sudo podman rm -f mariadb wordpress
 ```
 
 Starting and stopping is definitely easy, and fast. However, it is still pretty manual. What if we could automate the recovery? Or, in buzzword terms, "ensure the service remains available"? Enter Kubernetes/OpenShift.
@@ -217,8 +218,9 @@ $ oc delete pod/mariadb pod/wordpress
 
 Verify they are terminating or are gone:
 ```bash
-$ oc get pods
+$ oc get pods -w
 ```
+**__NOTE:__** When you are finished watching the pods, just CTRL-C out.
 
 **Note** you used the "singular" form here on the ```kind```, which, for delete, is required and requires a "name". However, you can, usually, use them interchangeably depending on the kind of information you want.
 
@@ -301,8 +303,8 @@ wordpress   1/1       Running   0          42s
 ```bash
 $ oc get services
 NAME        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-mariadb     172.30.229.10   <none>        3306/TCP   1m
-wordpress   172.30.237.62   <none>        8080/TCP     1m
+mariadb     172.30.xx.xx   <none>        3306/TCP   1m
+wordpress   172.30.xx.xx   <none>        8080/TCP     1m
 ```
 
 Now let's expose the wordpress service by creating a route
