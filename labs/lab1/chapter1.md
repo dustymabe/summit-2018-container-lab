@@ -10,7 +10,7 @@ Expected completion: 15-20 minutes
 
 Agenda:
 
-* Review podman and systemd
+* Review podman and docker
 * Review podman help
 * Explore a Dockerfile
 * Build an image
@@ -20,9 +20,9 @@ Agenda:
 
 Perform the following commands as `ec2-user` unless instructed otherwise.
 
-## podman and systemd
+## podman and docker
 
-Check out the systemd unit file that starts podman and notice that it includes 4 EnvironmentFiles. These files tell podman how the podman daemon, storage and networking should be set up and configured. Take a look at those files too. Specifically, in the /run/containers/registries.conf file check out the registry settings. You may find it interesting that you can `--add-registry` and `--block-registry` by modifying /etc/containers/registries.conf. Think about the different use cases for that. Both docker and podman share configuration files so if you are using docker in your environment these will be useful as well. 
+Both podman and docker share configuration files so if you are using docker in your environment these will be useful as well. These files tell podman how the storage and networking should be set up and configured. In the /run/containers/registries.conf file check out the registry settings. You may find it interesting that you can `--add-registry` and `--block-registry` by modifying /etc/containers/registries.conf. Think about the different use cases for that.
 ```bash
 $ cat /etc/containers/registries.conf #but don't add things here
 $ cat /etc/containers/registries.d/default.yaml #instead, duplicate this
@@ -32,19 +32,19 @@ $ cat /etc/containers/policy.json
 
 Unlike docker, podman doesn't need an always running daemon. However, you can check on the status of docker.
 ```bash
-$ systemctl status docker-latest # we are using docker-latest to have the most current version
+$ systemctl status docker
 ```
 
 ## podman Help
 
 Now that we see how the podman startup process works, we should make sure we know how to get help when we need it.  Run the following commands to get familiar with what is included in the podman package as well as what is provided in the man pages. Spend some time exploring here.
 
-Check out the executables provided:
+Check out the executable provided:
 ```bash
 $ rpm -ql podman | grep bin
 ```
 
-Check out the configuration files that are provided:
+Check out the configuration file(s) that are provided:
 ```bash
 $ rpm -qc podman
 ```
@@ -59,11 +59,6 @@ Run `podman {help,info}` to check out the storage configuration and how to find 
 $ podman --help
 $ podman run --help
 $ sudo podman info
-```
-
-Take a look at the podman images on the system. You should see some Openshift images that are cached.
-```bash
-$ sudo podman images
 ```
 
 ## Let's explore a Dockerfile
@@ -160,7 +155,7 @@ Remember, you can always install what you need while you are debugging something
 ```bash
 [apache]# less /run-apache.sh
 bash: less: command not found
-[apache]# yum install -y less
+[apache]# yum install -y less --disablerepo "*" --enablerepo rhel-7-server-rpms
 [apache]# less /run-apache.sh
 ...
 ```
@@ -186,7 +181,6 @@ $ cat registry/Dockerfile
 Build & run the registry
 ```bash
 $ sudo podman build -t registry registry/
-# NOTE: had to remove --restart always flag w/ podman ... maybe we use atomic to create a system container?
 $ sudo podman run --name registry -p 5000 -d registry
 ```
 
