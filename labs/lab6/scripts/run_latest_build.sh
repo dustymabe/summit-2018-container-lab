@@ -33,10 +33,10 @@
 # 172.17.0.1 if not customized
 #
 #source ~/cleanup-oc.sh
-docker pull docker.io/ansibleplaybookbundle/origin-ansible-service-broker:sprint143
-docker tag docker.io/ansibleplaybookbundle/origin-ansible-service-broker:sprint143 docker.io/ansibleplaybookbundle/origin-ansible-service-broker:latest
+docker pull docker.io/ansibleplaybookbundle/origin-ansible-service-broker:v3.9
+docker tag docker.io/ansibleplaybookbundle/origin-ansible-service-broker:v3.9 docker.io/ansibleplaybookbundle/origin-ansible-service-broker:latest
 
-ASB_VERSION=ansible-service-broker-1.1.4-1
+ASB_VERSION=ansible-service-broker-1.1.17-1
 NAMESPACE=ansible-service-broker
 #BROKER_IMAGE="registry.access.redhat.com/openshift3/ose-ansible-service-broker:v3.7"
 #ETCD_IMAGE="registry.access.redhat.com/rhel7/etcd:latest"
