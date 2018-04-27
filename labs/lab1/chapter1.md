@@ -169,24 +169,4 @@ Before we move on to the next section let's clean up the apache container so we 
 $ sudo podman rm -f apache
 ```
 
-## Deploy a Container Registry
-
-To prepare for a later lab, let's deploy a simple registry to store our images.
-
-Inspect the Dockerfile that has been prepared.
-```bash
-$ cat registry/Dockerfile
-```
-
-Build & run the registry
-```bash
-$ sudo podman build -t registry registry/
-$ sudo podman run --name registry -p 5000 -d registry
-```
-
-Confirm the registry is running.
-```bash
-$ sudo podman ps
-```
-
 In the [next lab](../lab2/chapter2.md) we will be analyzing a monolithic application.
