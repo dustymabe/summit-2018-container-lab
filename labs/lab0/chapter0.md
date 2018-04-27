@@ -11,14 +11,14 @@ This lab is designed to accommodate many students. As a result, each student wil
 
 You will be assigned a number by the instructor.
 
-Retrieve the key from the [instructor host](https://instructor.labs.sysdeseng.com/rhte.pem) so that you can _SSH_ into the instances by accessing the password protected directory from the table above. Download the _rhte.pem_ file to your local machine and change the permissions of the file to 600.
+Retrieve the key from the [instructor host](https://instructor.labs.sysdeseng.com/rhte.pem) so that you can _SSH_ into the instances by accessing the password protected directory from the table above. Download the _L1108.pem_ file to your local machine and change the permissions of the file to 600.
 
 ## Connecting to your AWS Instance
 This lab should be performed on **YOUR ASSIGNED AWS INSTANCE** as `ec2-user` unless otherwise instructed.
 
 **_NOTE_**: Please be respectful and only connect to your assigned instance. Every instance for this lab uses the same public key so you could accidentally (or with malicious intent) connect to the wrong system. If you have any issues please inform an instructor.
 ```bash
-$ ssh -i rhte.pem ec2-user@student-<number>.labs.sysdeseng.com
+$ ssh -i L1108.pem ec2-user@student-<number>.labs.sysdeseng.com
 ```
 
 **NOTE**: For Windows users you will have to use a terminal like [PuTTY](https://www.chiark.greenend.org.uk/~sgtatham/putty/latest.html) to SSH using the private key. 
@@ -36,7 +36,7 @@ $ sudo yum -y install screen
 $ screen
 ```
 
-In case you get disconnected use `screen -x` or `tmux attach` to reattach once you reestablish ssh connectivity. If you are unfamiliar with screen, check out this [quick tutorial](https://www.mattcutts.com/blog/a-quick-tutorial-on-screen/). For tmux here is a [quick tutorial](https://fedoramagazine.org/use-tmux-more-powerful-terminal/). However, tmux is not included in RHEL 7.5 which is what is in use for this lab.
+In case you get disconnected use `screen -x` or `tmux attach` to reattach once you reestablish ssh connectivity. If you are unfamiliar with screen, check out this [quick tutorial](https://www.mattcutts.com/blog/a-quick-tutorial-on-screen/). For tmux here is a [quick tutorial](https://fedoramagazine.org/use-tmux-more-powerful-terminal/).
 
 All that's left to do is run OpenShift by executing the `start-oc.sh` script in your home directory. First, let's take a look at what this script is doing, it's grabbing AWS instance metadata so that it can configure OpenShift to start up properly on AWS:
 ```bash
@@ -49,12 +49,20 @@ $ ~/start-oc.sh
 
 The resulting output should be something of this nature
 ```bash
-   The server is accessible via web console at:
-       https://<public-hostname>:8443
+Using nsenter mounter for OpenShift volumes
+Using 127.0.0.1 as the server IP
+Starting OpenShift using registry.access.redhat.com/openshift3/ose:v3.9.14 ...
+OpenShift server started.
 
-   You are logged in as:
-       User:     developer
-       Password: <any value>
+The server is accessible via web console at:
+    https://<public hostname>:8443
+
+You are logged in as:
+    User:     developer
+    Password: <any value>
+
+To login as administrator:
+    oc login -u system:admin
 ```
 You should get a lot of feedback about the launch of OpenShift. As long as you don't get any errors you are in good shape.
 
