@@ -43,7 +43,7 @@ $ sudo podman build -t bigimg .
 
 To run the podman container based on the image we just built use the following command:
 ```bash
-$ sudo podman run -P --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
+$ sudo podman run -p 80 --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
 $ sudo podman ps
 ```
 
@@ -156,7 +156,6 @@ More generally:
 * Use a specific tag for the source image. Image updates may break things.
 * Place rarely changing statements towards the top of the file. This allows the re-use of cached image layers when rebuilding.
 * Group statements into multi-line statements. This avoids layers that have files needed only for build.
-* Use `LABEL run` instruction to prescribe how the image is to be run.
 * Avoid running applications in the container as root user where possible.
 * Use `VOLUME` instruction to create a host mount point for persistent storage.
 

@@ -212,7 +212,8 @@ $ curl -L http://localhost:8080 #note we indicated the port to use in the run co
   **Note**: the `curl` command returns an error but demonstrates
             a response on the port.
 
-5. Test the Wordpress image to confirm connectivity. For the mariadb container we need to specify an additional option to make sure it is in the same "network" as the apache/wordpress container and not visible outside that container:
+5. Bring up the database (mariadb) for the wordpress instance. For the mariadb container we need to specify an additional option to make sure it is in the same "network" as the apache/wordpress container and not visible outside that container:
+
   * `--network=container:<alias>` to link to the wordpress container
 ```bash
 $ ls -lZd ~/workspace/mysql
@@ -220,6 +221,7 @@ $ sudo podman run -d --network=container:wordpress -v ~/workspace/mysql:/var/lib
 ```
 Note: See the difference in SELinux context after running w/ a volume & :z.
 ```bash
+$ ls -lZd ~/workspace/mysql
 $ ls -lZ ~/workspace/mysql
 $ sudo podman exec mariadb ps aux
 ```
