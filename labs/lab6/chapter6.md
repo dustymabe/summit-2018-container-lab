@@ -103,7 +103,6 @@ Now that we have deployed an application, you'll notice that its database inform
 - Select the `PostgreSQL (APB)` database from the catalog.
 - Click `Next`.
 - Select the `Development` Plan and click `Next`.
-- Select `apb` project in the drop-down.
 - Enter a password.
 - Select a PostgreSQL version.
 - Click `Next`
@@ -114,7 +113,6 @@ Now that we have deployed an application, you'll notice that its database inform
 ## Bind Application to Database
 - At the bottom of the project overview page, you should see a set of our newly provisioned services.
 - On the `PostgreSQL (APB)` service, click `Create Binding`. 
-- Select the `PostgreSQL` database.
 - Click `Bind`.
 - Click `Close`.
 - Let's look at the newly created secret by clicking `Resources` on the left menu and then `Secrets`. The newest secret should be at the top of the list. Click on the newest secret and reveal its contents.
