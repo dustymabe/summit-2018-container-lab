@@ -1,8 +1,8 @@
-# LAB 1: podman
+# LAB 1: podman and buildah
 
 In this lab we will explore the podman environment. If you are familiar with podman this may function as a brief refresher. If you are new to podman this will serve as an introduction to podman basics. Don't worry, we will progress rapidly. To get through this lab, we are going to focus on the environment itself as well as walk through some exercises with a couple of podman images/containers to tell a complete story and point out some things that you might have to consider when containerizing your application.
 
-What is [podman](https://github.com/projectatomic/libpod), you may ask? Well, the README explains it in detail but, in short, it is a tool for manipulating containers created by docker or other tools (such as buildah). The docker utility provides build, run, and push functions on docker containers. We are leveraging three tools, which support multiple kinds of containers, that do each function separately. Namely, [buildah](https://github.com/projectatomic/buildah) for building, podman for download, verification, and run, and [skopeo](https://github.com/projectatomic/skopeo) for distribution (pushing).
+What is [podman](https://github.com/projectatomic/libpod), you may ask? Well, the README explains it in detail but, in short, it is a tool for manipulating OCI compliant containers created by docker or other tools (such as buildah). The docker utility provides build, run, and push functions on docker containers via a docker daemon. We are leveraging three daemonless tools, which support OCI compliant containers, that do each function separately. Namely, [buildah](https://github.com/projectatomic/buildah) for building, podman for download, verification, and run, and [skopeo](https://github.com/projectatomic/skopeo) for distribution (pushing). You don't need the overhead of running a daemon to leverage these capabilities.
 
 This lab should be performed on **YOUR ASSIGNED AWS VM** as `ec2-user` unless otherwise instructed.
 
@@ -10,8 +10,8 @@ Expected completion: 15-20 minutes
 
 Agenda:
 
-* Review podman and docker
-* Review podman help
+* Review podman, buildah and docker
+* Review podman and buildah help
 * Explore a Dockerfile
 * Build an image
 * Launch a container
@@ -35,23 +35,26 @@ Unlike docker, podman doesn't need an always running daemon. However, you can ch
 $ systemctl status docker
 ```
 
-## podman Help
+## podman and buildah Help
 
 Now that we see how the podman startup process works, we should make sure we know how to get help when we need it.  Run the following commands to get familiar with what is included in the podman package as well as what is provided in the man pages. Spend some time exploring here.
 
 Check out the executable provided:
 ```bash
 $ rpm -ql podman | grep bin
+$ rpm -ql buildah | grep bin
 ```
 
 Check out the configuration file(s) that are provided:
 ```bash
 $ rpm -qc podman
+$ rpm -qc buildah
 ```
 
 Check out the documentation that is provided:
 ```bash
 $ rpm -qd podman
+$ rpm -qd buildah
 ```
 
 Run `podman {help,info}` to check out the storage configuration and how to find more information.
@@ -60,6 +63,11 @@ $ podman --help
 $ podman run --help
 $ sudo podman info
 ```
+
+Run `buildah help` to check out general options and get detailed information about specific options.
+```bash
+$ buildah --help
+$ buildah copy --help
 
 ## Let's explore a Dockerfile
 
@@ -96,12 +104,14 @@ After gaining access to a repository we update the container and install `httpd`
 Now that we have taken a look at the Dockerfile, let's build this image. We could use the exact same command, swapping podman for docker, to build with docker.
 ```bash
 $ sudo podman build -t redhat/apache .
+$ sudo podman images
 ```
 
-Podman is not actually building this image, technically it is wrapping buildah to do so. If you wanted to use buildah directly you can:
+Podman is not actually building this image, technically it is wrapping buildah to do so. If you wanted to use buildah directly and check out the resulting images, you can:
 ```bash
 $ sudo buildah build-using-dockerfile -t redhat/apache . #OR
 $ sudo buildah bud -t redhat/apache .
+$ sudo buildah images
 ```
 
 ## Run the Container
