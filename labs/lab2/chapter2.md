@@ -43,11 +43,11 @@ $ sudo podman build -t bigimg .
 
 To run the podman container based on the image we just built use the following command:
 ```bash
-$ sudo podman run -p 80 --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
+$ sudo podman run -P --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
 $ sudo podman ps
 ```
 
-Take a look at some of the arguments we are passing to podman.  We are telling podman that the image will be listening on port 80 inside the container and to randomly assign a port on the host that maps to port 80 in the container. Next we are providing a ```name``` of ```bigapp```. After that we are setting some environment variables that will be passed into the container and consumed by the configuration scripts to set up the container. Finally, we pass it the name of the image that we built in the prior step.
+Take a look at some of the arguments we are passing to podman. With `-P` we are telling podman to publish all ports the container exposes (i.e. from the Dockerfile) to randomly assigned ports on the host. In this case port 80 will get assigned to a random host port. Next we are providing a ```name``` of ```bigapp```. After that we are setting some environment variables that will be passed into the container and consumed by the configuration scripts to set up the container. Finally, we pass it the name of the image that we built in the prior step.
 
 ## Exploring the Running Container
 
