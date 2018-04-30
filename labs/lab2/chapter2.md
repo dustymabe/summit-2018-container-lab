@@ -156,6 +156,7 @@ More generally:
 * Use a specific tag for the source image. Image updates may break things.
 * Place rarely changing statements towards the top of the file. This allows the re-use of cached image layers when rebuilding.
 * Group statements into multi-line statements. This avoids layers that have files needed only for build.
+* Use `LABEL run` instruction to prescribe how the image is to be run.
 * Avoid running applications in the container as root user where possible.
 * Use `VOLUME` instruction to create a host mount point for persistent storage.
 
