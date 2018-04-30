@@ -77,8 +77,8 @@ OpenShift. You can see that by checking out the containers and
 images that are managed by docker:
 
 ```bash
-$ docker ps
-$ docker images
+$ sudo docker ps
+$ sudo docker images
 ```
 We can also check out the OpenShift console. Open a browser and navigate to `https://<public-hostname>:8443`. Be sure to use http*s* otherwise you will get weird web page. Once it loads (and you bypass the certificate errors), you can log in to the console using the default developer username (use any password).
 
