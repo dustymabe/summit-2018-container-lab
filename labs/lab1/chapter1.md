@@ -2,7 +2,7 @@
 
 In this lab we will explore the podman environment. If you are familiar with podman this may function as a brief refresher. If you are new to podman this will serve as an introduction to podman basics. Don't worry, we will progress rapidly. To get through this lab, we are going to focus on the environment itself as well as walk through some exercises with a couple of podman images/containers to tell a complete story and point out some things that you might have to consider when containerizing your application.
 
-What is [podman](https://github.com/projectatomic/libpod), you may ask? Well, the README explains it in detail but, in short, it is a tool for manipulating OCI compliant containers created by docker or other tools (such as buildah). The docker utility provides build, run, and push functions on docker containers via a docker daemon. We are leveraging three daemonless tools, which support OCI compliant containers, that do each function separately. Namely, [buildah](https://github.com/projectatomic/buildah) for building, podman for download, verification, and run, and [skopeo](https://github.com/projectatomic/skopeo) for distribution (pushing). You don't need the overhead of running a daemon to leverage these capabilities.
+What is [podman](https://github.com/projectatomic/libpod), you may ask? Well, the README explains it in detail but, in short, it is a tool for manipulating OCI compliant containers created by docker or other tools (such as buildah). The docker utility provides build, run, and push functions on docker containers via a docker daemon. We are leveraging three daemonless tools, which support OCI compliant containers, that do each function separately. Namely, [buildah](https://github.com/projectatomic/buildah) for building, [skopeo](https://github.com/projectatomic/skopeo) for pushing/pulling from registries, and podman for verification/run. podman will transparently use the buildah and skopeo technologies for the user to build and push/pull from registries, all without the overhead of a separate daemon running all the time.
 
 This lab should be performed on **YOUR ASSIGNED AWS VM** as `ec2-user` unless otherwise instructed.
 
@@ -22,7 +22,8 @@ Perform the following commands as `ec2-user` unless instructed otherwise.
 
 ## podman and docker
 
-Both podman and docker share configuration files so if you are using docker in your environment these will be useful as well. These files tell podman how the storage and networking should be set up and configured. In the /run/containers/registries.conf file check out the registry settings. You may find it interesting that you can `--add-registry` and `--block-registry` by modifying /etc/containers/registries.conf. Think about the different use cases for that.
+Both podman and docker share configuration files so if you are using docker in your environment these will be useful as well. These files tell podman how the storage and networking should be set up and configured. In the /run/containers/registries.conf file check out the registry settings. You may find it interesting that you can *add a registry* and *block a registry* by modifying /etc/containers/registries.conf. Think about the different use cases for that.
+
 ```bash
 $ cat /etc/containers/registries.conf #but don't add things here
 $ cat /etc/containers/registries.d/default.yaml #instead, duplicate this
@@ -30,8 +31,17 @@ $ cat /etc/containers/storage.conf
 $ cat /etc/containers/policy.json
 ```
 
-Unlike docker, podman doesn't need an always running daemon. However, you can check on the status of docker.
+Unlike docker, podman doesn't need an always running daemon. There are no podman processes running on the system:
+
 ```bash
+$ pgrep podman | wc -l
+```
+
+However, the docker daemon is running. You can see that and also check
+the status of the docker daemon:
+
+```bash
+$ pgrep docker | wc -l
 $ systemctl status docker
 ```
 
@@ -68,6 +78,7 @@ Run `buildah help` to check out general options and get detailed information abo
 ```bash
 $ buildah --help
 $ buildah copy --help
+```
 
 ## Let's explore a Dockerfile
 
@@ -107,10 +118,9 @@ $ sudo podman build -t redhat/apache .
 $ sudo podman images
 ```
 
-Podman is not actually building this image, technically it is wrapping buildah to do so. If you wanted to use buildah directly and check out the resulting images, you can:
+Podman is not actually building this image, technically it is wrapping buildah to do so. If you wanted to use buildah directly you could do the same thing as `sudo podman build -t redhat/apache .` by using `sudo buildah build-using-dockerfile -t redhat/apache .`. You can even see `buildah images` will report the same thing as `podman images`. 
+
 ```bash
-$ sudo buildah build-using-dockerfile -t redhat/apache . #OR
-$ sudo buildah bud -t redhat/apache .
 $ sudo buildah images
 ```
 
