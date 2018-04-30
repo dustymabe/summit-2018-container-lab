@@ -157,7 +157,7 @@ More generally:
 * Place rarely changing statements towards the top of the file. This allows the re-use of cached image layers when rebuilding.
 * Group statements into multi-line statements. This avoids layers that have files needed only for build.
 * Use `LABEL run` instruction to prescribe how the image is to be run.
-* Avoid running applications in the container as root user where possible.
+* Avoid running applications in the container as root user where possible. The final `USER` declaration in the Dockerfile should specify the [user ID (numeric value)](https://docs.openshift.com/container-platform/latest/creating_images/guidelines.html#openshift-specific-guidelines) and not the user name. If the image does not specify a USER, it inherits the USER from the parent image.
 * Use `VOLUME` instruction to create a host mount point for persistent storage.
 
 In the [next lab](../lab3/chapter3.md) we will fix these issues and break the application up into separate services.
