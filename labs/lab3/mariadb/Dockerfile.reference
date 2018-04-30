@@ -14,6 +14,6 @@ RUN chmod 755 /scripts/* && \
     chmod -R g=u ${MARIADB_DIRS}
 
 EXPOSE 3306
-VOLUME /var/lib/mysql /var/log/mariadb /run/mariadb
-USER mysql
+VOLUME /var/lib/mysql
+USER 27
 CMD ["/bin/bash", "/scripts/start.sh"]
