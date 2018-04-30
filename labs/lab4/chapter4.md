@@ -302,9 +302,9 @@ wordpress   1/1       Running   0          42s
 
 ```bash
 $ oc get services
-NAME        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
-mariadb     172.30.xx.xx   <none>        3306/TCP   1m
-wordpress   172.30.xx.xx   <none>        8080/TCP     1m
+NAME        TYPE        CLUSTER-IP      EXTERNAL-IP   PORT(S)    AGE
+mariadb     ClusterIP   172.30.xx.xx    <none>        3306/TCP   1m
+wordpress   ClusterIP   172.30.xx.xx    <none>        8080/TCP   1m
 ```
 
 Now let's expose the wordpress service by creating a route
@@ -315,8 +315,8 @@ $ oc expose svc/wordpress
 And you should be able to see the service's accessible URL by viewing the routes:
 ```bash
 $ oc get routes
-NAME        HOST/PORT                                        PATH      SERVICES    PORT  
-wordpress   wordpress-devel.<YOUR AWS VM PUBLIC IP>.nip.io             wordpress   8080  
+NAME        HOST/PORT                               PATH      SERVICES    PORT      TERMINATION   WILDCARD
+wordpress   wordpress-devel.<YOUR AWS VM PUBLIC IP>.nip.io    wordpress   8080                    None
 ```
 
 Check and make sure you can access the wordpress service through the route:
