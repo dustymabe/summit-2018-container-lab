@@ -1,6 +1,6 @@
 ## Introduction
 
-In this lab, we are going to leverage a process known as [`oc cluster up`](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md). This enables us to quickly stand up a local OpenShift Container Platform to start our evaluation. The key result of `oc cluster up` is a reliable, reproducible OpenShift environment to iterate on.
+In this lab, we are going to leverage a process known as [`oc cluster up`](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md). `oc cluster up` leverages the local docker daemon and enables us to quickly stand up a local OpenShift Container Platform to start our evaluation. The key result of `oc cluster up` is a reliable, reproducible OpenShift environment to iterate on.
 
 Expected completion: 5-10 minutes
 
@@ -70,8 +70,15 @@ OK, so now that OpenShift is available, let's ask for a cluster status & take a 
 ```bash
 $ oc version
 $ oc cluster status
-$ docker ps
-$ docker images
+```
+
+As noted before, `oc cluster up` leverages docker for running
+OpenShift. You can see that by checking out the containers and
+images that are managed by docker:
+
+```bash
+$ sudo docker ps
+$ sudo docker images
 ```
 We can also check out the OpenShift console. Open a browser and navigate to `https://<public-hostname>:8443`. Be sure to use http*s* otherwise you will get weird web page. Once it loads (and you bypass the certificate errors), you can log in to the console using the default developer username (use any password).
 
