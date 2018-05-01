@@ -84,7 +84,7 @@ objects:
       app: wordpress
     name: wordpress
   spec:
-    replicas: 2
+    replicas: 1
     selector:
       app: wordpress
       deploymentconfig: wordpress
