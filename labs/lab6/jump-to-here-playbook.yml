@@ -1,0 +1,21 @@
+--- 
+- hosts: localhost
+  become_method: sudo
+  tasks:
+  - name: launch openshift
+    command: /bin/bash /home/ec2-user/start-oc.sh
+    become: false
+    ignore_errors: yes
+
+  - name: openshift login
+    command: oc login developer
+    become: false
+    ignore_errors: yes
+
+  - name: create empty production project
+    command: oc new-project production
+    become: false
+
+  - name: create empty devel project
+    command: oc new-project devel
+    become: false
