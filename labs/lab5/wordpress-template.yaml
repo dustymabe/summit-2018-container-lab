@@ -7,7 +7,7 @@ metadata:
   annotations:
     openshift.io/display-name: "WordPress MariaDB Example" 
     description: "An example WordPress application with a MariaDB database."
-    tags: "wordpress,php,mariadb,aws,loft"
+    tags: "wordpress,php,mariadb,summit"
     iconClass: "icon-php"
 objects:
 - apiVersion: v1
@@ -57,22 +57,8 @@ objects:
               - MYSQL_PWD="$DBPASS" mysql -h 127.0.0.1 -u $DBUSER -D $DBNAME
                 -e 'SELECT 1'
             timeoutSeconds: 2
-          volumeMounts:
-          - mountPath: /run/mariadb
-            name: mariadb-volume-1
-          - mountPath: /var/lib/mysql
-            name: mariadb-volume-2
-          - mountPath: /var/log/mariadb
-            name: mariadb-volume-3
         dnsPolicy: ClusterFirst
         restartPolicy: Always
-        volumes:
-        - emptyDir: {}
-          name: mariadb-volume-1
-        - emptyDir: {}
-          name: mariadb-volume-2
-        - emptyDir: {}
-          name: mariadb-volume-3
     triggers:
     - type: ConfigChange
 - apiVersion: v1
@@ -98,7 +84,7 @@ objects:
       app: wordpress
     name: wordpress
   spec:
-    replicas: 2
+    replicas: 1
     selector:
       app: wordpress
       deploymentconfig: wordpress
@@ -133,22 +119,8 @@ objects:
             tcpSocket:
               port: 8080
             timeoutSeconds: 1
-          volumeMounts:
-          - mountPath: /var/www/html/wp-content/uploads
-            name: wordpress-volume-1
-          - mountPath: /var/log/httpd
-            name: wordpress-volume-2
-          - mountPath: /run/httpd
-            name: wordpress-volume-3
         dnsPolicy: ClusterFirst
         restartPolicy: Always
-        volumes:
-        - emptyDir: {}
-          name: wordpress-volume-1
-        - emptyDir: {}
-          name: wordpress-volume-2
-        - emptyDir: {}
-          name: wordpress-volume-3
     triggers:
     - type: ConfigChange
 - apiVersion: v1

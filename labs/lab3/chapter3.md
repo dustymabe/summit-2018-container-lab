@@ -109,11 +109,11 @@ $ ls -lR wordpress
 
 1. Add a `VOLUME` instruction. This ensures data will be persisted even if the container is lost. However, it won't do anything unless, when running the container, host directories are mapped to the volumes.
 
-        VOLUME /var/lib/mysql /var/log/mariadb /run/mariadb
+        VOLUME /var/lib/mysql
 
-1. Switch to a non-root `USER`.
+1. Switch to a non-root `USER` uid. The default uid of the mysql user is 27.
 
-        USER mysql
+        USER 27
 
 1. Finish by adding the `CMD` instruction.
 
@@ -161,11 +161,11 @@ Now we'll create the Wordpress Dockerfile. (As before, there is a reference file
 
 1. Add a `VOLUME` instruction. This ensures data will be persisted even if the container is lost.
 
-        VOLUME /var/www/html/wp-content/uploads /var/log/httpd /run/httpd
+        VOLUME /var/www/html/wp-content/uploads
 
-1. Switch to a non-root `USER`.
+1. Switch to a non-root `USER` uid. The default uid of the apache user is 48.
 
-        USER apache
+        USER 48
 
 1. Finish by adding the `CMD` instruction.
 
@@ -186,9 +186,11 @@ Now we are ready to build the images to test our Dockerfiles.
 
         $ sudo podman images
 
-1. Create the local directories for persistent storage.
+1. Create the local directories for persistent storage. Match the directory permissions we set in our Dockerfiles.
 
-        $ mkdir -p ~/workspace/mysql ~/workspace/uploads
+        $ mkdir -p ~/workspace/pv/mysql ~/workspace/pv/uploads
+        $ sudo chown -R 27:0 ~/workspace/pv/mysql
+        $ sudo chown -R 48:0 ~/workspace/pv/uploads
 
 1. Run the wordpress image first. See an explanation of all the `podman run` options we will be using below:
 
@@ -197,13 +199,22 @@ Now we are ready to build the images to test our Dockerfiles.
   * `-p <container_port>` to map the container port to the host port
 
 ```bash
-$ ls -lZd ~/workspace/uploads
-$ sudo podman run -d -p 8080 -v ~/workspace/uploads:/var/www/html/wp-content/uploads:z -e DB_ENV_DBUSER=user -e DB_ENV_DBPASS=mypassword -e DB_ENV_DBNAME=mydb -e DB_HOST=0.0.0.0 -e DB_PORT=3306 --name wordpress wordpress
+$ ls -lZd ~/workspace/pv/uploads
+$ sudo podman run -d -p 8080:8080 -v ~/workspace/pv/uploads:/var/www/html/wp-content/uploads:z -e DB_ENV_DBUSER=user -e DB_ENV_DBPASS=mypassword -e DB_ENV_DBNAME=mydb -e DB_HOST=0.0.0.0 -e DB_PORT=3306 --name wordpress wordpress
 ```
 Note: See the difference in SELinux context after running with a volume & :z.
 ```bash
-$ ls -lZd ~/workspace/uploads
+$ ls -lZd ~/workspace/pv/uploads
 $ sudo podman exec wordpress ps aux #we can also directly exec commands in the container
+```
+
+Check volume directory ownership inside the container
+```bash
+$ sudo podman exec wordpress stat --format="%U" /var/www/html/wp-content/uploads
+```
+
+Now we can check out how wordpress is doing
+```bash
 $ sudo podman logs wordpress
 $ sudo podman ps
 $ curl -L http://localhost:8080 #note we indicated the port to use in the run command above
@@ -216,19 +227,19 @@ $ curl -L http://localhost:8080 #note we indicated the port to use in the run co
 
   * `--network=container:<alias>` to link to the wordpress container
 ```bash
-$ ls -lZd ~/workspace/mysql
-$ sudo podman run -d --network=container:wordpress -v ~/workspace/mysql:/var/lib/mysql:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
+$ ls -lZd ~/workspace/pv/mysql
+$ sudo podman run -d --network=container:wordpress -v ~/workspace/pv/mysql:/var/lib/mysql:z -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb --name mariadb mariadb
 ```
 Note: See the difference in SELinux context after running w/ a volume & :z.
 ```bash
-$ ls -lZd ~/workspace/mysql
-$ ls -lZ ~/workspace/mysql
+$ ls -lZd ~/workspace/pv/mysql
+$ ls -lZ ~/workspace/pv/mysql
 $ sudo podman exec mariadb ps aux
 ```
 
 Check volume directory ownership inside the container
 ```bash
-$ sudo podman exec mariadb stat --format="%U" /var/lib/mysql/mysql
+$ sudo podman exec mariadb stat --format="%U" /var/lib/mysql
 ```
 
 Now we can check out how the database is doing
@@ -256,7 +267,7 @@ $ cat registry/Dockerfile
 Build & run the registry
 ```bash
 $ sudo podman build -t registry registry/
-$ sudo podman run --name registry -p 5000 -d registry
+$ sudo podman run --name registry -p 5000:5000 -d registry
 ```
 
 Confirm the registry is running.

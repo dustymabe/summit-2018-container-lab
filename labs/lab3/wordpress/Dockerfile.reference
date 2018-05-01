@@ -17,6 +17,6 @@ RUN tar xvzf /latest.tar.gz -C /var/www/html --strip-components=1 && \
     chmod -R g=u ${APACHE_DIRS}
 
 EXPOSE 8080
-VOLUME /var/www/html/wp-content/uploads /var/log/httpd /run/httpd
-USER apache
+VOLUME /var/www/html/wp-content/uploads
+USER 48
 CMD ["/bin/bash", "/scripts/start.sh"]
