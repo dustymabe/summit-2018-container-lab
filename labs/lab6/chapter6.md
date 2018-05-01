@@ -115,7 +115,7 @@ Now that we have deployed an application, you'll notice that its database inform
 - On the `PostgreSQL (APB)` service, click `Create Binding`. 
 - Click `Bind`.
 - Click `Close`.
-- Let's look at the newly created secret by clicking `Resources` on the left menu and then `Secrets`. The newest secret should be at the top of the list. Click on the newest secret and reveal its contents.
+- Let's look at the newly created secret by clicking `Resources` on the left menu and then `Secrets`. The newest secret should be at the top of the list. Click on the newest secret _(e.g. dh-postgresql-apb-qgt7d-credentials-hb0v7)_ and reveal its contents.
 - Now let's bind the application to our database by clicking `Add to Application` in the upper right corner.
 - Select the `hello-world` (it may be more cryptic than that) app from the drop-down and click `Save`.
 - Return to the Project Overview page by clicking `Overview` on the left menu.
