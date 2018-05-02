@@ -189,14 +189,14 @@ Now we are ready to build the images to test our Dockerfiles.
 1. Create the local directories for persistent storage. Match the directory permissions we set in our Dockerfiles.
 
         $ mkdir -p ~/workspace/pv/mysql ~/workspace/pv/uploads
-        $ sudo chown -R 27:0 ~/workspace/pv/mysql
-        $ sudo chown -R 48:0 ~/workspace/pv/uploads
+        $ sudo chown -R 27 ~/workspace/pv/mysql
+        $ sudo chown -R 48 ~/workspace/pv/uploads
 
 1. Run the wordpress image first. See an explanation of all the `podman run` options we will be using below:
 
   * `-d` to run in daemonized mode
   * `-v <host/path>:<container/path>:z` to mount (technically, "bindmount") the directory for persistent storage. The :z option will label the content inside the container with the SELinux MCS label that the container uses so that the container can write to the directory. Below we'll inspect the labels on the directories before and after we run the container to see the changes on the labels in the directories
-  * `-p <container_port>` to map the container port to the host port
+  * `-p <host_port>:<container_port>` to map the container port to the host port
 
 ```bash
 $ ls -lZd ~/workspace/pv/uploads

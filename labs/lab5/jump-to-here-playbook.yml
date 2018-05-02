@@ -3,7 +3,7 @@
   become_method: sudo
   tasks:
   - name: build registry
-    command: podman build -t registry /home/ec2-user/summit-2018-container-lab/labs/lab1/registry 
+    command: podman build -t registry /home/ec2-user/summit-2018-container-lab/labs/lab3/registry
     become: true
 
   - name: build mariadb
