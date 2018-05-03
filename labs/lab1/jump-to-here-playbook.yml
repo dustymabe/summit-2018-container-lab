@@ -1,0 +1,8 @@
+--- 
+- hosts: localhost
+  become_method: sudo
+  tasks:
+  - name: launch openshift
+    command: /bin/bash /home/ec2-user/start-oc.sh
+    become: false
+    ignore_errors: yes
