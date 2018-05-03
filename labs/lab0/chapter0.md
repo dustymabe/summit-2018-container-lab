@@ -11,7 +11,7 @@ This lab is designed to accommodate many students. As a result, each student wil
 
 You will be assigned a number by the instructor.
 
-Retrieve the key from the [instructor host](https://instructor.labs.sysdeseng.com/rhte.pem) so that you can _SSH_ into the instances by accessing the password protected directory from the table above. Download the _L1108.pem_ file to your local machine and change the permissions of the file to 600.
+Retrieve the key from the [instructor host](https://instructor.labs.sysdeseng.com/summit/L1108.pem) so that you can _SSH_ into the instances by accessing the password protected directory from the table above. Download the _L1108.pem_ file to your local machine and change the permissions of the file to 600.
 
 ## Connecting to your AWS Instance
 This lab should be performed on **YOUR ASSIGNED AWS INSTANCE** as `ec2-user` unless otherwise instructed.
