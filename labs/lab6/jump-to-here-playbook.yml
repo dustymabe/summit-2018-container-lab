@@ -8,14 +8,15 @@
     ignore_errors: yes
 
   - name: openshift login
-    command: oc login developer
+    command: oc login -u developer
+    become: false
+
+  - name: create empty devel project
+    command: oc new-project devel
     become: false
     ignore_errors: yes
 
   - name: create empty production project
     command: oc new-project production
     become: false
-
-  - name: create empty devel project
-    command: oc new-project devel
-    become: false
+    ignore_errors: yes

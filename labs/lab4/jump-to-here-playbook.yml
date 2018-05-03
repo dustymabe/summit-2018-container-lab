@@ -37,10 +37,39 @@
     poll: 0
     register: wordpress
 
-  - name: cleanup registry container
-    command: podman rm -f registry
+  - name: cleanup containers
+    command: podman rm -f {{ item }}
     become: true
+    with_items:
+      - bigapp
+      - registry
+      - mariadb
+      - wordpress
     ignore_errors: yes
+
+  - name: create pv dir
+    file:
+      state: directory
+      path: /home/ec2-user/workspace/pv
+      owner: ec2-user
+      group: ec2-user
+    become: true
+
+  - name: create mysql pv dir
+    file:
+      state: directory
+      path: /home/ec2-user/workspace/pv/mysql
+      owner: 27
+      group: ec2-user
+    become: true
+
+  - name: create wp pv dir
+    file:
+      state: directory
+      path: /home/ec2-user/workspace/pv/uploads
+      owner: 48
+      group: ec2-user
+    become: true
 
   - name: Check on registry build
     async_status: jid={{ registry.ansible_job_id }}
@@ -85,13 +114,4 @@
     register: cache_result
     until: cache_result.finished
     retries: 300
-    ignore_errors: yes
-
-  - name: openshift login
-    command: oc login -u developer
-    become: false
-
-  - name: create empty devel project
-    command: oc new-project devel
-    become: false
     ignore_errors: yes

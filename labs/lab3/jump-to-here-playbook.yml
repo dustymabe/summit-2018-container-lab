@@ -1,0 +1,29 @@
+--- 
+- hosts: localhost
+  become_method: sudo
+  tasks:
+  - name: launch openshift
+    command: /bin/bash /home/ec2-user/start-oc.sh
+    async: 600
+    poll: 0
+    register: start_oc
+
+  - name: build bigimg
+    command: podman build -t bigimg /home/ec2-user/summit-2018-container-lab/labs/lab2/bigapp
+    become: true
+
+  - name: cleanup bigapp container
+    command: podman rm -f bigapp
+    become: true
+    ignore_errors: yes
+
+  - name: launch bigapp
+    command: podman run -P --name=bigapp -e DBUSER=user -e DBPASS=mypassword -e DBNAME=mydb -d bigimg
+    become: true
+
+  - name: Check on openshift launch
+    async_status: jid={{ start_oc.ansible_job_id }}
+    register: cache_result
+    until: cache_result.finished
+    retries: 300
+    ignore_errors: yes
