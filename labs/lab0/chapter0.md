@@ -11,7 +11,13 @@ This lab is designed to accommodate many students. As a result, each student wil
 
 You will be assigned a number by the instructor.
 
-Retrieve the key from the [instructor host](https://instructor.labs.sysdeseng.com/rhte.pem) so that you can _SSH_ into the instances by accessing the password protected directory from the table above. Download the _L1108.pem_ file to your local machine and change the permissions of the file to 600.
+Retrieve the key from the [instructor host](https://instructor.labs.sysdeseng.com/L1108.pem) so that you can _SSH_ into the instances by accessing the password protected directory from the table above. Download the _L1108.pem_ file to your local machine and change the permissions of the file to 600.
+
+```bash
+$ PASSWD=<password from instructor>
+$ wget --no-check-certificate --user student --password ${PASSWD} https://instructor.labs.sysdeseng.com/summit/L1108.pem
+$ chmod 600 ~/L1108.pem
+```
 
 ## Connecting to your AWS Instance
 This lab should be performed on **YOUR ASSIGNED AWS INSTANCE** as `ec2-user` unless otherwise instructed.
@@ -25,7 +31,7 @@ $ ssh -i L1108.pem ec2-user@student-<number>.labs.sysdeseng.com
 
 Once installed, use the following instructions to SSH to your VM instance: [http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html](http://docs.aws.amazon.com/AWSEC2/latest/UserGuide/putty.html).
 
-TIP: Use the rhte.ppk key located at:  [instructor host](https://instructor.labs.sysdeseng.com/rhte.ppk) as PuTTY uses a different format for its keys.
+TIP: Use the rhte.ppk key located at:  [instructor host](https://instructor.labs.sysdeseng.com/L1108.ppk) as PuTTY uses a different format for its keys.
 
 ## Getting Set Up
 For the sake of time, some of the required setup has already been taken care of on your AWS VM. For future reference though, the easiest way to get started is to head over to the OpenShift Origin repo on github and follow the "[Getting Started](https://github.com/openshift/origin/blob/master/docs/cluster_up_down.md)" instructions. The instructions cover getting started on Windows, MacOS, and Linux.
