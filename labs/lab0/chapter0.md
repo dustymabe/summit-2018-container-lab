@@ -16,7 +16,7 @@ Retrieve the key from the [instructor host](https://instructor.labs.sysdeseng.co
 ```bash
 $ PASSWD=<password from instructor>
 $ wget --no-check-certificate --user student --password ${PASSWD} https://instructor.labs.sysdeseng.com/summit/L1108.pem
-$ chmod 600 ~/L1108.pem
+$ chmod 600 L1108.pem
 ```
 
 ## Connecting to your AWS Instance
